@@ -21,7 +21,7 @@ class AppTheme {
           seedColor: AppColors.primary,
           primary: AppColors.primary,
           secondary: AppColors.orange,
-          background: AppColors.background,
+          surface: AppColors.background,
         ),
         scaffoldBackgroundColor: AppColors.background,
         appBarTheme: const AppBarTheme(
