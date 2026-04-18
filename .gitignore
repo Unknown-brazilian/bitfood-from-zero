@@ -1,0 +1,27 @@
+# Environment
+.env
+.env.local
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Next.js
+admin/.next/
+admin/out/
+
+# Flutter
+apps/*/build/
+apps/*/.dart_tool/
+apps/*/.flutter-plugins
+apps/*/.flutter-plugins-dependencies
+apps/*/.packages
+
+# Secrets
+*.pem
+*.key
+nginx/certs/
+
+# OS
+.DS_Store
+*.swp
