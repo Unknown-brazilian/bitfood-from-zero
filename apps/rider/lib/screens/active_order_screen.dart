@@ -17,6 +17,7 @@ class ActiveOrderScreen extends StatelessWidget {
       ),
       builder: (result, {fetchMore, refetch}) {
         final orders = (result.data?['riderOrders']?['orders'] as List?) ?? [];
+        final outerRefetch = refetch;
 
         // Also check PICKED orders
         return Query(
@@ -25,9 +26,10 @@ class ActiveOrderScreen extends StatelessWidget {
             variables: {'status': 'PICKED'},
             fetchPolicy: FetchPolicy.networkOnly,
           ),
-          builder: (pickedResult, {fetchMore, refetch: refetchPicked}) {
+          builder: (pickedResult, {fetchMore, refetch}) {
             final pickedOrders = (pickedResult.data?['riderOrders']?['orders'] as List?) ?? [];
             final all = [...orders, ...pickedOrders];
+            final pickedRefetch = refetch;
 
             if (all.isEmpty) {
               return const Center(
@@ -48,8 +50,8 @@ class ActiveOrderScreen extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               itemCount: all.length,
               itemBuilder: (_, i) => _ActiveOrderCard(order: all[i], onUpdate: () {
-                refetch!();
-                refetchPicked!();
+                outerRefetch?.call();
+                pickedRefetch?.call();
               }),
             );
           },
