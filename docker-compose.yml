@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - bitfood
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./backend/.env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/bitfood
+    depends_on:
+      - mongo
+    networks:
+      - bitfood
+    ports:
+      - "4000:4000"
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:4000/graphql
+    depends_on:
+      - backend
+    networks:
+      - bitfood
+    ports:
+      - "3000:3000"
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+      - admin
+    networks:
+      - bitfood
+
+volumes:
+  mongo_data:
+
+networks:
+  bitfood:
+    driver: bridge
