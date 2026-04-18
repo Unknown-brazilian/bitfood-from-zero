@@ -22,6 +22,15 @@ apps/*/.packages
 *.key
 nginx/certs/
 
+# Android signing — do NOT commit keystores or passwords
+apps/*/android/key.properties
+apps/*/android/keystore/
+
+# Build artifacts (distribute via release/ folder locally, not git)
+release/*.aab
+release/*.apk
+apps/*/build/
+
 # OS
 .DS_Store
 *.swp
