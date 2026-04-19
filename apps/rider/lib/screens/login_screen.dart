@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ));
       if (result.hasException) throw result.exception!;
       final data = result.data!['login'];
-      if (data['userType'] != 'RIDER') throw Exception('Acesso apenas para entregadores');
+      if (data['userType'] != 'RIDER') throw Exception('Acesso restrito a entregadores cadastrados');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', data['token']);
       await prefs.setString('rider_name', data['name'] ?? '');
@@ -68,8 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _phoneCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Telefone ou E-mail', filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  decoration: const InputDecoration(labelText: 'E-mail', filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
                 ),
                 const SizedBox(height: 12),
                 TextField(

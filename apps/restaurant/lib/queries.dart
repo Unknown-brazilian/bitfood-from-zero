@@ -1,7 +1,31 @@
 const loginRestaurantMutation = r'''
-  mutation LoginRestaurant($username: String!, $password: String!) {
-    loginRestaurant(username: $username, password: $password) {
+  mutation LoginRestaurant($emailOrUsername: String!, $password: String!) {
+    loginRestaurant(emailOrUsername: $emailOrUsername, password: $password) {
       token userId userType name restaurantId
+    }
+  }
+''';
+
+const registerRestaurantMutation = r'''
+  mutation RegisterRestaurant($name: String!, $email: String!, $password: String!, $phone: String, $address: String) {
+    registerRestaurant(name: $name, email: $email, password: $password, phone: $phone, address: $address) {
+      token userId userType name restaurantId
+    }
+  }
+''';
+
+const meRestaurantQuery = r'''
+  query MyRestaurantProfile {
+    myRestaurant {
+      _id name email phone address logo nameLocked isAvailable
+    }
+  }
+''';
+
+const updateRestaurantProfileMutation = r'''
+  mutation UpdateRestaurantProfile($name: String, $phone: String, $address: String, $logo: String) {
+    updateRestaurantProfile(name: $name, phone: $phone, address: $address, logo: $logo) {
+      _id name email phone address logo nameLocked
     }
   }
 ''';
@@ -71,5 +95,29 @@ const newOrderSub = r'''
 const myEarningsQuery = r'''
   query MyEarnings {
     myEarnings { totalSats todaySats weekSats monthSats totalOrders }
+  }
+''';
+
+const addCategoryMutation = r'''
+  mutation AddCategory($title: String!) {
+    addCategory(title: $title) {
+      _id categories { _id title foods { _id title priceSats isActive } }
+    }
+  }
+''';
+
+const addFoodMutation = r'''
+  mutation AddFood($categoryId: ID!, $title: String!, $description: String, $priceSats: Int) {
+    addFood(categoryId: $categoryId, title: $title, description: $description, priceSats: $priceSats) {
+      _id categories { _id title foods { _id title priceSats isActive } }
+    }
+  }
+''';
+
+const updateFoodMutation = r'''
+  mutation UpdateFood($foodId: ID!, $isActive: Boolean) {
+    updateFood(foodId: $foodId, isActive: $isActive) {
+      _id categories { _id title foods { _id title priceSats isActive } }
+    }
   }
 ''';
