@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final client = GraphQLProvider.of(context).value;
       final result = await client.mutate(MutationOptions(
         document: gql(loginRestaurantMutation),
-        variables: { 'username': _usernameCtrl.text.trim(), 'password': _passwordCtrl.text },
+        variables: { 'emailOrUsername': _usernameCtrl.text.trim(), 'password': _passwordCtrl.text },
       ));
       if (result.hasException) throw result.exception!;
       final data = result.data!['loginRestaurant'];
