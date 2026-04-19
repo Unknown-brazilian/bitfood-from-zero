@@ -24,7 +24,14 @@ module.exports = {
 
     myRestaurant: async (_, __, { user }) => {
       requireRole(user, 'RESTAURANT');
-      return Restaurant.findById(user.restaurantId).populate('zone');
+      const r = await Restaurant.findById(user.restaurantId).populate('zone');
+      if (!r) return null;
+      const result = r.toObject();
+      result.categories = result.categories.map(cat => ({
+        ...cat,
+        foods: result.foods.filter(f => f.category?.toString() === cat._id.toString()),
+      }));
+      return result;
     },
 
     nearbyRestaurants: async (_, { lat, lng, radius = 10 }) => {
