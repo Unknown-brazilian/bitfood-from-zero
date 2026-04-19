@@ -146,6 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelText: _isRegister ? 'E-mail (opcional)' : 'E-mail ou telefone',
                         ),
                         keyboardType: TextInputType.emailAddress,
+                        validator: (v) => !_isRegister && (v == null || v.trim().isEmpty)
+                            ? 'Digite seu e-mail ou telefone'
+                            : null,
                       ),
                       const SizedBox(height: 12),
 

@@ -6,6 +6,14 @@ const loginMutation = r'''
   }
 ''';
 
+const registerRiderMutation = r'''
+  mutation RegisterRider($name: String!, $email: String!, $password: String!, $phone: String, $vehicleType: String) {
+    registerRider(name: $name, email: $email, password: $password, phone: $phone, vehicleType: $vehicleType) {
+      token userId userType name phone
+    }
+  }
+''';
+
 const availableOrdersQuery = r'''
   query AvailableOrders {
     availableOrders {
