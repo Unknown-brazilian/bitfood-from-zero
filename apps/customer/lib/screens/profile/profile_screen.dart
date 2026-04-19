@@ -3,6 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import '../order/orders_screen.dart';
+import 'addresses_screen.dart';
+import 'lightning_wallet_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,12 +33,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => LoginScreen(onLoginSuccess: () {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const _HomeWrapper()), (_) => false);
-        })),
+        MaterialPageRoute(builder: (_) => LoginScreen(onLoginSuccess: () {})),
         (_) => false,
       );
     }
+  }
+
+  void _showHelp() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Ajuda & Suporte', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Problemas com seu pedido?', style: TextStyle(fontWeight: FontWeight.w700)),
+            SizedBox(height: 4),
+            Text('Entre em contato pelo e-mail:\nsuporte@bitfood.app', style: TextStyle(fontSize: 13, color: Color(0xFF666666))),
+            SizedBox(height: 16),
+            Text('Horário de atendimento', style: TextStyle(fontWeight: FontWeight.w700)),
+            SizedBox(height: 4),
+            Text('Segunda a Sexta: 9h – 18h\nSábado: 9h – 14h', style: TextStyle(fontSize: 13, color: Color(0xFF666666))),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+        ],
+      ),
+    );
+  }
+
+  void _showAbout() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Sobre o BitFood', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('BitFood é a primeira plataforma de delivery que aceita pagamentos em Bitcoin via Lightning Network.', style: TextStyle(fontSize: 13, height: 1.5)),
+            SizedBox(height: 12),
+            Text('Versão 1.0.5', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+            Text('© 2025 BitFood. Todos os direitos reservados.', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+        ],
+      ),
+    );
   }
 
   @override
@@ -78,16 +126,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
 
           // Menu items
-          _MenuItem(icon: Icons.receipt_long_outlined, label: 'Meus Pedidos'),
-          _MenuItem(icon: Icons.location_on_outlined, label: 'Meus Endereços'),
-          _MenuItem(icon: Icons.help_outline, label: 'Ajuda & Suporte'),
-          _MenuItem(icon: Icons.info_outline, label: 'Sobre o BitFood'),
+          _MenuItem(
+            icon: Icons.receipt_long_outlined,
+            label: 'Meus Pedidos',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.location_on_outlined,
+            label: 'Meus Endereços',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddressesScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.help_outline,
+            label: 'Ajuda & Suporte',
+            onTap: _showHelp,
+          ),
+          _MenuItem(
+            icon: Icons.info_outline,
+            label: 'Sobre o BitFood',
+            onTap: _showAbout,
+          ),
           const SizedBox(height: 8),
           _MenuItem(
             icon: Icons.electric_bolt,
             label: 'Bitcoin · Lightning Network ⚡',
-            subtitle: 'Pagamentos sem fronteiras',
+            subtitle: 'Conecte sua carteira Lightning',
             color: AppColors.orange,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LightningWalletScreen())),
           ),
           const SizedBox(height: 24),
 
@@ -115,25 +180,20 @@ class _MenuItem extends StatelessWidget {
   final String label;
   final String? subtitle;
   final Color? color;
+  final VoidCallback? onTap;
 
-  const _MenuItem({required this.icon, required this.label, this.subtitle, this.color});
+  const _MenuItem({required this.icon, required this.label, this.subtitle, this.color, this.onTap});
 
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
         child: ListTile(
+          onTap: onTap,
           leading: Icon(icon, color: color ?? AppColors.textGrey, size: 22),
           title: Text(label, style: TextStyle(fontSize: 14, color: color ?? AppColors.textDark, fontWeight: FontWeight.w500)),
           subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.textGrey)) : null,
           trailing: const Icon(Icons.chevron_right, color: AppColors.textLight, size: 20),
         ),
       );
-}
-
-// Placeholder to avoid import cycle
-class _HomeWrapper extends StatelessWidget {
-  const _HomeWrapper();
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Reiniciando...')));
 }

@@ -6,9 +6,11 @@ import '../queries.dart';
 import 'orders_screen.dart';
 import 'earnings_screen.dart';
 import 'menu_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback onLogout;
+  const HomeScreen({super.key, required this.onLogout});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -82,10 +84,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: IndexedStack(
             index: _tab,
-            children: const [
-              OrdersScreen(),
-              MenuScreen(),
-              EarningsScreen(),
+            children: [
+              const OrdersScreen(),
+              const MenuScreen(),
+              const EarningsScreen(),
+              ProfileScreen(onLogout: widget.onLogout),
             ],
           ),
           bottomNavigationBar: BottomNavigationBar(
@@ -94,10 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedItemColor: AppColors.primary,
             unselectedItemColor: AppColors.textLight,
             backgroundColor: AppColors.cardWhite,
+            type: BottomNavigationBarType.fixed,
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), activeIcon: Icon(Icons.receipt_long), label: 'Pedidos'),
               BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu_outlined), activeIcon: Icon(Icons.restaurant_menu), label: 'Cardápio'),
               BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), activeIcon: Icon(Icons.bar_chart), label: 'Ganhos'),
+              BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Perfil'),
             ],
           ),
         );

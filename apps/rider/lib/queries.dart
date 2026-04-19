@@ -76,3 +76,25 @@ const newOrderForRiderSub = r'''
     }
   }
 ''';
+
+const orderHeatmapQuery = r'''
+  query OrderHeatmap {
+    orderHeatmap { lat lng weight }
+  }
+''';
+
+const meQuery = r'''
+  query Me {
+    me {
+      _id name phone vehicleType nameLocked available
+    }
+  }
+''';
+
+const updateProfileMutation = r'''
+  mutation UpdateProfile($name: String, $vehicleType: String) {
+    updateProfile(name: $name, vehicleType: $vehicleType) {
+      _id name vehicleType nameLocked
+    }
+  }
+''';

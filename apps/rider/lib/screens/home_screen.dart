@@ -8,9 +8,12 @@ import '../queries.dart';
 import 'available_orders_screen.dart';
 import 'active_order_screen.dart';
 import 'earnings_screen.dart';
+import 'heatmap_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback onLogout;
+  const HomeScreen({super.key, required this.onLogout});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -111,10 +114,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: IndexedStack(
         index: _tab,
-        children: const [
-          AvailableOrdersScreen(),
-          ActiveOrderScreen(),
-          EarningsScreen(),
+        children: [
+          const AvailableOrdersScreen(),
+          const ActiveOrderScreen(),
+          const HeatMapScreen(),
+          const EarningsScreen(),
+          ProfileScreen(onLogout: widget.onLogout),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -123,10 +128,13 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textLight,
         backgroundColor: AppColors.cardWhite,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.search), activeIcon: Icon(Icons.search), label: 'Disponíveis'),
           BottomNavigationBarItem(icon: Icon(Icons.delivery_dining), activeIcon: Icon(Icons.delivery_dining), label: 'Em Andamento'),
+          BottomNavigationBarItem(icon: Icon(Icons.map_outlined), activeIcon: Icon(Icons.map), label: 'Mapa'),
           BottomNavigationBarItem(icon: Icon(Icons.bar_chart), activeIcon: Icon(Icons.bar_chart), label: 'Ganhos'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
     );

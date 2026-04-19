@@ -126,6 +126,49 @@ const String orderDetailQuery = r'''
   }
 ''';
 
+const String meQuery = r'''
+  query Me {
+    me {
+      _id name email phone
+      addresses {
+        _id label address street number complement neighborhood postalCode city state country details isDefault
+        location { lat lng }
+      }
+    }
+  }
+''';
+
+const String addAddressMutation = r'''
+  mutation AddAddress(
+    $label: String
+    $address: String!
+    $street: String
+    $number: String
+    $complement: String
+    $neighborhood: String
+    $postalCode: String
+    $city: String
+    $state: String
+    $country: String
+    $details: String
+    $lat: Float
+    $lng: Float
+    $isDefault: Boolean
+  ) {
+    addAddress(
+      label: $label address: $address street: $street number: $number
+      complement: $complement neighborhood: $neighborhood postalCode: $postalCode
+      city: $city state: $state country: $country details: $details
+      lat: $lat lng: $lng isDefault: $isDefault
+    ) {
+      _id addresses {
+        _id label address street number complement neighborhood postalCode city state country details isDefault
+        location { lat lng }
+      }
+    }
+  }
+''';
+
 const String cancelOrderMutation = r'''
   mutation CancelOrder($orderId: ID!) {
     cancelOrder(orderId: $orderId) { _id orderStatus }
