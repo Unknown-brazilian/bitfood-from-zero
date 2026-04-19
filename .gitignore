@@ -1,3 +1,7 @@
+# Backend e Admin — mantidos apenas em backup local/privado
+backend/
+admin/
+
 # Environment
 .env
 .env.local
