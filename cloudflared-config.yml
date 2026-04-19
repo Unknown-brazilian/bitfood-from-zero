@@ -1,0 +1,13 @@
+# Substitua TUNNEL_ID pelo ID gerado após: cloudflared tunnel create bitfood
+# Exemplo: cloudflared tunnel list  →  copia o ID
+tunnel: TUNNEL_ID
+credentials-file: /home/unknown/.cloudflared/TUNNEL_ID.json
+
+ingress:
+  - hostname: api.bitfood.app
+    service: http://localhost:4000
+    originRequest:
+      noTLSVerify: true
+  - hostname: admin.bitfood.app
+    service: http://localhost:3000
+  - service: http_status:404

@@ -22,7 +22,7 @@ services:
     networks:
       - bitfood
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000"
 
   admin:
     build:
@@ -30,28 +30,13 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:4000/graphql
+      NEXT_PUBLIC_API_URL: https://api.bitfood.app/graphql
     depends_on:
       - backend
     networks:
       - bitfood
     ports:
-      - "3000:3000"
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-    depends_on:
-      - backend
-      - admin
-    networks:
-      - bitfood
+      - "127.0.0.1:3000:3000"
 
 volumes:
   mongo_data:
