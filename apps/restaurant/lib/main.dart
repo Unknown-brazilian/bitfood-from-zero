@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme.dart';
 import 'screens/login_screen.dart';
@@ -11,7 +10,6 @@ const _wsUrl = String.fromEnvironment('WS_URL', defaultValue: 'ws://10.0.2.2:400
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initHiveForFlutter();
   runApp(const RestaurantApp());
 }
 
@@ -38,21 +36,32 @@ class _AppRoot extends StatefulWidget {
 class _AppRootState extends State<_AppRoot> {
   String? _token;
   bool _loading = true;
+  late ValueNotifier<GraphQLClient> _clientNotifier;
 
   @override
   void initState() {
     super.initState();
+    _clientNotifier = ValueNotifier(_buildClient(null));
     _load();
+  }
+
+  @override
+  void dispose() {
+    _clientNotifier.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() { _token = prefs.getString('token'); _loading = false; });
+    final token = prefs.getString('token');
+    _clientNotifier.value = _buildClient(token);
+    if (mounted) setState(() { _token = token; _loading = false; });
   }
 
-  GraphQLClient _makeClient(String? token) {
+  GraphQLClient _buildClient(String? token) {
     final http = HttpLink(_apiUrl);
-    final ws = WebSocketLink(_wsUrl,
+    final ws = WebSocketLink(
+      _wsUrl,
       config: SocketClientConfig(
         autoReconnect: true,
         initialPayload: token != null ? {'authorization': 'Bearer $token'} : null,
@@ -65,20 +74,27 @@ class _AppRootState extends State<_AppRoot> {
     });
     return GraphQLClient(
       link: Link.split((r) => r.isSubscription, ws, auth.concat(http)),
-      cache: GraphQLCache(store: HiveStore()),
+      cache: GraphQLCache(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
+    }
 
     return GraphQLProvider(
-      client: ValueNotifier(_makeClient(_token)),
+      client: _clientNotifier,
       child: _token != null
           ? const HomeScreen()
-          : LoginScreen(onLogin: (token) {
-              setState(() => _token = token);
+          : LoginScreen(onLogin: (token) async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('token', token);
+              _clientNotifier.value = _buildClient(token);
+              if (mounted) setState(() => _token = token);
             }),
     );
   }

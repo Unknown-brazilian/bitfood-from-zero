@@ -12,18 +12,18 @@ class GraphQLService {
     defaultValue: 'ws://10.0.2.2:4000/graphql',
   );
 
-  static ValueNotifier<GraphQLClient> client = ValueNotifier(_buildClient());
+  static late ValueNotifier<GraphQLClient> client;
 
   static GraphQLClient _buildClient([String? token]) {
     final httpLink = HttpLink(_apiUrl);
-    final wsLink = WebSocketLink(_wsUrl,
+    final wsLink = WebSocketLink(
+      _wsUrl,
       config: SocketClientConfig(
         autoReconnect: true,
         inactivityTimeout: const Duration(seconds: 30),
         initialPayload: token != null ? {'authorization': 'Bearer $token'} : null,
       ),
     );
-
     final authLink = AuthLink(
       getToken: () async {
         final prefs = await SharedPreferences.getInstance();
@@ -31,16 +31,13 @@ class GraphQLService {
         return t != null ? 'Bearer $t' : null;
       },
     );
-
-    final splitLink = Link.split(
-      (request) => request.isSubscription,
-      wsLink,
-      authLink.concat(httpLink),
-    );
-
     return GraphQLClient(
-      link: splitLink,
-      cache: GraphQLCache(store: HiveStore()),
+      link: Link.split(
+        (request) => request.isSubscription,
+        wsLink,
+        authLink.concat(httpLink),
+      ),
+      cache: GraphQLCache(),
     );
   }
 
@@ -51,7 +48,7 @@ class GraphQLService {
   }
 
   static Future<void> init() async {
-    await initHiveForFlutter();
+    client = ValueNotifier(_buildClient());
     await refreshClient();
   }
 }
