@@ -7,6 +7,7 @@ import 'orders_screen.dart';
 import 'earnings_screen.dart';
 import 'menu_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/sats_chip.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -20,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
   bool _isAvailable = false;
   String _restaurantName = '';
+  int _totalSats = 0;
 
   @override
   void initState() {
@@ -35,7 +37,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Query(
-      options: QueryOptions(document: gql(myRestaurantQuery)),
+      options: QueryOptions(
+        document: gql(myRestaurantQuery),
+        pollInterval: const Duration(seconds: 30),
+      ),
       builder: (result, {fetchMore, refetch}) {
         if (!result.isLoading && result.data?['myRestaurant'] != null) {
           final r = result.data!['myRestaurant'];
@@ -46,11 +51,24 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
 
+        return Query(
+          options: QueryOptions(document: gql(myEarningsQuery), pollInterval: const Duration(minutes: 2)),
+          builder: (earningsResult, {fetchMore, refetch}) {
+            final earnSats = (earningsResult.data?['myEarnings']?['totalSats'] as num?)?.toInt() ?? _totalSats;
+            if (earnSats != _totalSats) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _totalSats = earnSats);
+              });
+            }
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
             title: Text(_restaurantName),
             actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: SatsChip(sats: _totalSats),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Mutation(
@@ -105,6 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
               BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Perfil'),
             ],
           ),
+        );
+          },
         );
       },
     );

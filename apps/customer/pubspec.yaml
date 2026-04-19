@@ -26,6 +26,12 @@ dependencies:
   webview_flutter: ^4.4.2
   qr_flutter: ^4.1.0
 
+  # Location
+  geolocator: ^11.0.0
+
+  # Notifications
+  flutter_local_notifications: ^17.2.2
+
   # Utils
   intl: ^0.18.1
   url_launcher: ^6.2.2

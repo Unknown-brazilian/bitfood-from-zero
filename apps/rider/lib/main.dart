@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -8,12 +9,14 @@ import 'screens/language_screen.dart';
 import 'screens/terms_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'services/notification_service.dart';
 
 const _apiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://10.0.2.2:4000/graphql');
 const _wsUrl = String.fromEnvironment('WS_URL', defaultValue: 'ws://10.0.2.2:4000/graphql');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   final localeProvider = await LocaleProvider.load();
   runApp(RiderApp(localeProvider: localeProvider));
 }
@@ -44,7 +47,8 @@ class _Root extends StatefulWidget {
 
 class _RootState extends State<_Root> {
   String? _token;
-  bool _loading = true;
+  bool _checkDone = false;
+  bool _splashDone = false;
   bool _termsAccepted = false;
   late ValueNotifier<GraphQLClient> _clientNotifier;
 
@@ -66,7 +70,7 @@ class _RootState extends State<_Root> {
     final token = prefs.getString('token');
     _termsAccepted = prefs.getBool('terms_accepted_v1') ?? false;
     _clientNotifier.value = _buildClient(token);
-    if (mounted) setState(() { _token = token; _loading = false; });
+    if (mounted) setState(() { _token = token; _checkDone = true; });
   }
 
   GraphQLClient _buildClient(String? token) {
@@ -88,8 +92,10 @@ class _RootState extends State<_Root> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+    if (!_splashDone || !_checkDone) {
+      return _AnimatedSplash(onComplete: () {
+        if (mounted) setState(() => _splashDone = true);
+      });
     }
 
     final locale = Provider.of<LocaleProvider>(context);
@@ -125,6 +131,104 @@ class _RootState extends State<_Root> {
               _clientNotifier.value = _buildClient(token);
               if (mounted) setState(() => _token = token);
             }),
+    );
+  }
+}
+
+class _AnimatedSplash extends StatefulWidget {
+  final VoidCallback onComplete;
+  const _AnimatedSplash({required this.onComplete});
+
+  @override
+  State<_AnimatedSplash> createState() => _AnimatedSplashState();
+}
+
+class _AnimatedSplashState extends State<_AnimatedSplash> with SingleTickerProviderStateMixin {
+  static const _messages = [
+    '1st Bitcoin Only\nfood delivery app',
+    'We prefer\nWallet of Satoshi ⚡',
+    'Work everywhere you want,\nwith no borders',
+  ];
+
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  int _msgIndex = 0;
+  Timer? _doneTimer;
+  Timer? _cycleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+    _ctrl.forward();
+    _cycle();
+    _doneTimer = Timer(const Duration(seconds: 10), widget.onComplete);
+  }
+
+  void _cycle() {
+    _cycleTimer = Timer(const Duration(milliseconds: 3000), () async {
+      if (!mounted) return;
+      await _ctrl.reverse();
+      if (!mounted) return;
+      setState(() => _msgIndex = (_msgIndex + 1) % _messages.length);
+      _ctrl.forward();
+      _cycle();
+    });
+  }
+
+  @override
+  void dispose() {
+    _doneTimer?.cancel();
+    _cycleTimer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0F),
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 88, height: 88,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 24, spreadRadius: 4)],
+                ),
+                child: const Center(child: Text('🏍️', style: TextStyle(fontSize: 44))),
+              ),
+              const SizedBox(height: 20),
+              const Text('BitFood',
+                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
+              const SizedBox(height: 6),
+              const Text('App do Entregador', style: TextStyle(color: Color(0xFFF7931A), fontSize: 13, letterSpacing: 1)),
+              const SizedBox(height: 64),
+              FadeTransition(
+                opacity: _fade,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  child: Text(
+                    _messages[_msgIndex],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 19,
+                      height: 1.45,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

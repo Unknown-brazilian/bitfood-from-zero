@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../services/queries.dart';
+import '../../services/notification_service.dart';
 import 'order_detail_screen.dart';
 
 const _statusLabels = {
@@ -32,8 +33,27 @@ const _statusColors = {
   'REJECTED': AppColors.primary,
 };
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
+
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  final Map<String, String> _prevStatuses = {};
+
+  void _checkStatusChanges(List orders) {
+    for (final order in orders) {
+      final id = order['_id']?.toString() ?? '';
+      final status = order['orderStatus']?.toString() ?? '';
+      final prev = _prevStatuses[id];
+      if (prev != null && prev != status) {
+        NotificationService.showOrderStatus(status, id);
+      }
+      _prevStatuses[id] = status;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +64,16 @@ class OrdersScreen extends StatelessWidget {
         options: QueryOptions(
           document: gql(myOrdersQuery),
           fetchPolicy: FetchPolicy.cacheAndNetwork,
+          pollInterval: const Duration(seconds: 15),
         ),
         builder: (result, {fetchMore, refetch}) {
           if (result.isLoading && result.data == null) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
           final orders = (result.data?['myOrders']?['orders'] as List?) ?? [];
+          if (orders.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) => _checkStatusChanges(orders));
+          }
           if (orders.isEmpty) {
             return const Center(
               child: Column(

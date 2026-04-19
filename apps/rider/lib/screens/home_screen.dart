@@ -10,6 +10,8 @@ import 'active_order_screen.dart';
 import 'earnings_screen.dart';
 import 'heatmap_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/sats_chip.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -23,6 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
   bool _available = false;
   String _name = '';
+  int _totalSats = 0;
+  String? _zoneId;
   Timer? _locationTimer;
 
   @override
@@ -39,7 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() => _name = prefs.getString('rider_name') ?? 'Entregador');
+    if (mounted) setState(() => _name = prefs.getString('rider_name') ?? 'Entregador');
+  }
+
+  void _onMeData(Map<String, dynamic> data) {
+    final zone = (data['me'] as Map?)?['zone'];
+    final zoneId = zone?['_id']?.toString();
+    if (zoneId != null && zoneId != _zoneId && mounted) {
+      setState(() => _zoneId = zoneId);
+    }
   }
 
   void _startLocationTracking(BuildContext context) {
@@ -84,11 +96,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Query(
+      options: QueryOptions(document: gql(meQuery), pollInterval: const Duration(minutes: 5)),
+      builder: (meResult, {fetchMore, refetch}) {
+        if (meResult.data != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _onMeData(meResult.data!));
+        }
+    return Query(
+      options: QueryOptions(document: gql(riderEarningsQuery), pollInterval: const Duration(minutes: 2)),
+      builder: (earningsResult, {fetchMore, refetch}) {
+        final earnSats = (earningsResult.data?['myEarnings']?['totalSats'] as num?)?.toInt() ?? _totalSats;
+        if (earnSats != _totalSats) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _totalSats = earnSats);
+          });
+        }
+    return Stack(
+      children: [
+        // Hidden subscription for new delivery notifications
+        if (_zoneId != null)
+          Offstage(
+            offstage: true,
+            child: Subscription(
+              options: SubscriptionOptions(
+                document: gql(newOrderForRiderSub),
+                variables: {'zoneId': _zoneId},
+              ),
+              builder: (result) {
+                if (!result.isLoading && result.data != null) {
+                  final order = result.data!['newOrderForRider'];
+                  if (order != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      NotificationService.showNewDelivery(order);
+                    });
+                  }
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+    Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Olá, ${_name.split(' ').first}! 🏍️'),
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: SatsChip(sats: _totalSats),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: GestureDetector(
@@ -137,6 +192,12 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
-    );
+    ),   // closes Scaffold (2nd Stack child)
+    ], // closes Stack.children
+    );  // closes Stack
+      },
+    );  // closes earningsQuery
+      },
+    );  // closes meQuery
   }
 }

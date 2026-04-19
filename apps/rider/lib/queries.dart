@@ -94,7 +94,7 @@ const orderHeatmapQuery = r'''
 const meQuery = r'''
   query Me {
     me {
-      _id name phone vehicleType nameLocked available
+      _id name phone vehicleType nameLocked available zone { _id }
     }
   }
 ''';

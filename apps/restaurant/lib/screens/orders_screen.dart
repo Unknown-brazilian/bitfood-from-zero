@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
+import '../services/notification_service.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -13,17 +15,42 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
   final _tabs = ['PAID', 'ACCEPTED', 'PREPARING', 'READY'];
+  String? _restaurantId;
 
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: _tabs.length, vsync: this);
+    _loadRestaurantId();
+  }
+
+  Future<void> _loadRestaurantId() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _restaurantId = prefs.getString('restaurant_id'));
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        if (_restaurantId != null && _restaurantId!.isNotEmpty)
+          Subscription(
+            options: SubscriptionOptions(
+              document: gql(newOrderSub),
+              variables: {'restaurantId': _restaurantId},
+            ),
+            builder: (result) {
+              if (!result.isLoading && result.data != null) {
+                final order = result.data!['newOrderForRestaurant'];
+                if (order != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    NotificationService.showNewOrder(order);
+                  });
+                }
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         Container(
           color: AppColors.cardWhite,
           child: TabBar(

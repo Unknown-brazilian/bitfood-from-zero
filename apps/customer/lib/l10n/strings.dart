@@ -223,11 +223,68 @@ class AppStrings {
     'nav_profile': 'Profil',
   };
 
+  static const _gn = <String, String>{
+    'lang_title': 'Eiporavo nde ñe\'ẽ',
+    'lang_subtitle': 'Choose your language',
+    'lang_continue': 'Ku\'ejey',
+    'tos_title': 'Ñemoñe\'ẽ Rehegua',
+    'tos_scroll_hint': 'Eike rehe eñemoñe\'ẽ haguã ñemoñe\'ẽ mba\'eveichagua',
+    'tos_checkbox': 'Añemoñe\'ẽ ha ajehecha ñemoñe\'ẽ rehegua',
+    'tos_btn_accept': 'Japytávo ha Ku\'ejey',
+    'tos_btn_decline': 'Nda\'iporiei',
+    'tos_s1_title': '⚠️ Beta Mba\'e — Temimbo\'e Paha',
+    'tos_s1_body':
+        'BitFood oĩ beta porubyrã rehe. Mba\'eporu ikatu ombosakã, oñemboguata '
+        'térã oñemboguejy oñemomarandu\'ỹre. Ndoromoañetéi mba\'apohára oĩporãmbyre, '
+        'mba\'e rogueraha térã tembiapo ojehu ko arapýpe.',
+    'tos_s2_title': '⭐ Ñemboheraguapy Rembiasakue (Opytavéta)',
+    'tos_s2_body':
+        'Peteĩ ñemboheraguapy ñemoñe\'ẽ oñembojoapy ta ko\'ãva mboyve. Ñembohesa, '
+        'mba\'eporurã rembiasakue, moheñói ha tembiapo oñembojoaju ta '
+        'oñemboheko rehegua (tembiporu\'a, tenda rembi\'u ha moheñói), '
+        'ikatu ombotuicha térã ombyai jeporavo ko tembiporu\'a pype.',
+    'tos_s3_title': '⚡ Lightning Poti\'ĩ Ñeha\'ã Ramo',
+    'tos_s3_body':
+        'Oñemboheko peteĩteĩ oikóva ko tembiporu\'a pype heta mba\'e: '
+        'jehecha, ichupe oĩva ha ñemboheraguapy ojoapy ta '
+        'peteĩ Bitcoin Lightning poti\'ĩme. Ko poti\'ĩ ha\'e ñeha\'ã '
+        'oñemboheko peteĩteĩ ko apañuãi pype. Roñe\'ẽ Wallet of Satoshi ndive '
+        'ha ambue poti\'ĩ Lightning Address (ñemba\'apo@tembiporu.com) ndive. '
+        'Ne poti\'ĩ rejoaju rire, erejeréi Bitcoin tembiapo '
+        'ndojejokova\'erãminte.',
+    'tos_s4_title': '⚖️ Léi Ñemoñe\'ẽ',
+    'tos_s4_body':
+        'Oñemboheko peteĩteĩ ha\'e ijehe omba\'apoháme ko tembiporu\'a pype, '
+        'oñemboguata, moñe\'ẽrã ha moheñói ndive. BitFood ndoipytyvõi, '
+        'ndohechakuaai, ndomondái térã ndojepytyvõi mba\'eve tembiapo '
+        'ombyaiha térã ombohovái léi upe peteĩteĩ oikóva ko tembiporu\'a pype. '
+        'Peteĩteĩ oikóva ojeruréva ha ojekuaave haguã léi oĩva. Ko apañuãi '
+        'ikatu omboguejy peteĩva ojoguahẽmíva mba\'e vai rehe.',
+    'tos_s5_title': '📍 Mbyapu Ñepytyvõ',
+    'tos_s5_body':
+        '• Moheñói oikotevẽ oĩ 2km peve tendaguasu rehe haguã ojehupity haguã mba\'apo.\n'
+        '• Mba\'eporurã oñemboguata moheñói tendagua 10km peve tendaguasu rehe.\n'
+        '• Moheñói moto ndive ikatu ohupity mba\'eporurã 60km peve.',
+    'tos_closing':
+        'Ere "Japytávo ha Ku\'ejey" rehe, ejehecháma, eikuaáma ha '
+        'eñemoñe\'ẽma ko ñemoñe\'ẽ rehegua guive.',
+    'login_subtitle': 'Emboyata rembi\'u, emboheraguapy Bitcoin ndive',
+    'login_email': 'Ñanduti veve',
+    'login_password': 'Ñe\'ẽñemi',
+    'login_btn': 'Jepuru',
+    'login_no_account': '¿Ndereikói cuenta? Eñembojuaju',
+    'nav_home': 'Róga',
+    'nav_search': 'Heka',
+    'nav_orders': 'Mba\'eporurã',
+    'nav_profile': 'Che rehegua',
+  };
+
   static Map<String, String> of(String locale) {
     switch (locale) {
       case 'en': return _en;
       case 'es': return _es;
       case 'fr': return _fr;
+      case 'gn': return _gn;
       default:   return _pt;
     }
   }

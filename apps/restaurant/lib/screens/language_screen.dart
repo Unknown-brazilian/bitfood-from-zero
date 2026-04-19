@@ -19,6 +19,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
     {'code': 'en', 'flag': '🇺🇸', 'name': 'English', 'native': 'English'},
     {'code': 'es', 'flag': '🇲🇽', 'name': 'Español (América Latina)', 'native': 'Español'},
     {'code': 'fr', 'flag': '🇫🇷', 'name': 'Français', 'native': 'Français'},
+    {'code': 'gn', 'flag': '🇵🇾', 'name': 'Guaraní (Paraguay)', 'native': 'Avañe\'ẽ'},
   ];
 
   Future<void> _confirm() async {

@@ -6,6 +6,7 @@ import '../../models/cart_model.dart';
 import '../../services/queries.dart';
 import '../../widgets/restaurant_card.dart';
 import '../../widgets/search_bar_widget.dart';
+import '../../widgets/sats_chip.dart';
 import '../restaurant/restaurant_screen.dart';
 import '../cart/cart_screen.dart';
 import '../order/orders_screen.dart';
@@ -99,6 +100,12 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text('Para onde vamos hoje?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
             ],
           ),
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: SatsChip(),
+            ),
+          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(56),
             child: Padding(
