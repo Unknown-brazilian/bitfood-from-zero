@@ -1,4 +1,4 @@
-package com.bitfood.bitfood_customer
+package com.bitfood.customer
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,4 +1,4 @@
-package com.bitfood.bitfood_rider
+package com.bitfood.rider
 
 import io.flutter.embedding.android.FlutterActivity
 
