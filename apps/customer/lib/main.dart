@@ -21,19 +21,14 @@ class BitFoodApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => CartModel(),
-      child: ValueListenableBuilder<GraphQLClient>(
-        valueListenable: GraphQLService.client,
-        builder: (context, client, _) {
-          return GraphQLProvider(
-            client: GraphQLService.client,
-            child: MaterialApp(
-              title: 'BitFood',
-              theme: AppTheme.theme,
-              debugShowCheckedModeBanner: false,
-              home: const _AppRoot(),
-            ),
-          );
-        },
+      child: GraphQLProvider(
+        client: GraphQLService.client,
+        child: MaterialApp(
+          title: 'BitFood',
+          theme: AppTheme.theme,
+          debugShowCheckedModeBanner: false,
+          home: const _AppRoot(),
+        ),
       ),
     );
   }
@@ -58,7 +53,7 @@ class _AppRootState extends State<_AppRoot> {
 
   Future<void> _check() async {
     _loggedIn = await AuthService.isLoggedIn();
-    setState(() => _loading = false);
+    if (mounted) setState(() => _loading = false);
   }
 
   @override
