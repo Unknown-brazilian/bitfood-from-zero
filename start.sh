@@ -8,9 +8,11 @@ LANDING_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/landing" && pwd)"
 export PATH=~/.npm-global/bin:$PATH
 
 # ── Cores ────────────────────────────────────────────────────
-R='\e[0;31m'; Y='\e[1;33m'; G='\e[0;32m'; C='\e[0;36m'
-W='\e[1;37m'; D='\e[2m';    B='\e[0;34m'; M='\e[0;35m'
-RST='\e[0m';  BLD='\e[1m';  BG_R='\e[41m'; BG_BLK='\e[40m'
+# $'...' faz o shell converter \e para ESC real em tempo de atribuição,
+# necessário para que printf %s imprima cores corretamente.
+R=$'\e[0;31m'; Y=$'\e[1;33m'; G=$'\e[0;32m'; C=$'\e[0;36m'
+W=$'\e[1;37m'; D=$'\e[2m';    B=$'\e[0;34m'; M=$'\e[0;35m'
+RST=$'\e[0m';  BLD=$'\e[1m';  BG_R=$'\e[41m'; BG_BLK=$'\e[40m'
 OK="${G}● online${RST}"; KO="${R}● offline${RST}"; WRN="${Y}● iniciando${RST}"
 
 # ── Funções auxiliares ────────────────────────────────────────
@@ -69,11 +71,11 @@ start_services() {
 
 # ── Logo ──────────────────────────────────────────────────────
 draw_logo() {
-    local r='\e[0;41m'   # reset + fundo vermelho
-    local y='\e[1;33m'   # amarelo bold (raio)
-    local w='\e[1;37m'   # branco bold (título)
-    local RS='\e[0m'     # reset total
-    local DM='\e[2;37m'  # branco dim (borda)
+    local r=$'\e[0;41m'   # reset + fundo vermelho
+    local y=$'\e[1;33m'   # amarelo bold (raio)
+    local w=$'\e[1;37m'   # branco bold (título)
+    local RS=$'\e[0m'     # reset total
+    local DM=$'\e[2;37m'  # branco dim (borda)
     local L="${DM}│${RS}"
 
     # ── Caixa vermelha com raio amarelo (20 chars de largura interna) ──
@@ -159,9 +161,9 @@ main() {
     start_services
     sleep 3
 
-    # Dashboard sem piscar — cursor volta ao topo a cada refresh
+    # Dashboard sem piscar — no alternate screen, 2J não causa flicker
     while true; do
-        printf '\033[H'   # cursor home, sem apagar a tela
+        printf '\033[2J\033[H'   # limpa + cursor home
         echo ""
         draw_logo
         draw_status
