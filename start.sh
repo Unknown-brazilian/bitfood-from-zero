@@ -94,43 +94,48 @@ draw_status() {
     local NMEM; NMEM=$(node_mem)
     local UP; UP=$(uptime_fmt)
 
-    echo ""
-    echo -e " ${W}${BLD}╔══════════════════════════════════════════╗${RST}"
-    echo -e " ${W}${BLD}║  Serviços                                ║${RST}"
-    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
-    printf  " ${W}${BLD}║${RST}  %-6s  MongoDB              %-12s${W}${BLD}║${RST}\n" "" "$mongo_st"
-    printf  " ${W}${BLD}║${RST}  %-6s  Node.js API (:4000)  %-12s${W}${BLD}║${RST}\n" "" "$node_st"
-    printf  " ${W}${BLD}║${RST}  %-6s  Landing page (:3000) %-12s${W}${BLD}║${RST}\n" "" "$landing_st"
-    printf  " ${W}${BLD}║${RST}  %-6s  Cloudflare Tunnel    %-12s${W}${BLD}║${RST}\n" "" "$cf_st"
-    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
-    echo -e " ${W}${BLD}║  Rede                                    ║${RST}"
-    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
-    echo -e " ${W}${BLD}║${RST}  ${D}IP Local  ${RST}  ${C}${BLD}${LIP}${RST}"
-    echo -e " ${W}${BLD}║${RST}  ${D}API       ${RST}  ${C}${BLD}https://api.bitfood.app/graphql${RST}"
-    echo -e " ${W}${BLD}║${RST}  ${D}Admin     ${RST}  ${C}${BLD}https://bitfood.app${RST}"
-    echo -e " ${W}${BLD}║${RST}  ${D}Conexões  ${RST}  ${Y}${BLD}${CONN} ativas${RST}"
-    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
-    echo -e " ${W}${BLD}║  Sistema                                 ║${RST}"
-    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
-    echo -e " ${W}${BLD}║${RST}  ${D}RAM total ${RST}  ${MEM}"
-    echo -e " ${W}${BLD}║${RST}  ${D}Node RAM  ${RST}  ${NMEM}"
-    echo -e " ${W}${BLD}║${RST}  ${D}Uptime    ${RST}  ${UP}"
-    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
-    echo -e " ${W}${BLD}║  ${D}Atualiza a cada 5s · Ctrl+C para sair  ${W}${BLD}║${RST}"
-    echo -e " ${W}${BLD}╚══════════════════════════════════════════╝${RST}"
+    local EL='\033[K'  # apaga até o fim da linha (evita lixo ao sobrescrever)
+    echo -e ""
+    echo -e " ${W}${BLD}╔══════════════════════════════════════════╗${RST}${EL}"
+    echo -e " ${W}${BLD}║  Serviços                                ║${RST}${EL}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
+    printf  " ${W}${BLD}║${RST}  %-6s  MongoDB              %-12s${W}${BLD}║${RST}\033[K\n" "" "$mongo_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  Node.js API (:4000)  %-12s${W}${BLD}║${RST}\033[K\n" "" "$node_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  Landing page (:3000) %-12s${W}${BLD}║${RST}\033[K\n" "" "$landing_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  Cloudflare Tunnel    %-12s${W}${BLD}║${RST}\033[K\n" "" "$cf_st"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
+    echo -e " ${W}${BLD}║  Rede                                    ║${RST}${EL}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}IP Local  ${RST}  ${C}${BLD}${LIP}${RST}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}API       ${RST}  ${C}${BLD}https://api.bitfood.app/graphql${RST}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Admin     ${RST}  ${C}${BLD}https://bitfood.app${RST}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Conexões  ${RST}  ${Y}${BLD}${CONN} ativas${RST}${EL}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
+    echo -e " ${W}${BLD}║  Sistema                                 ║${RST}${EL}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}RAM total ${RST}  ${MEM}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Node RAM  ${RST}  ${NMEM}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Uptime    ${RST}  ${UP}${EL}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
+    echo -e " ${W}${BLD}║  ${D}Atualiza a cada 5s · Ctrl+C para sair  ${W}${BLD}║${RST}${EL}"
+    echo -e " ${W}${BLD}╚══════════════════════════════════════════╝${RST}${EL}"
 }
 
 # ── Loop principal ────────────────────────────────────────────
 main() {
-    # Inicia serviços na primeira vez
-    clear
+    # Entra no alternate screen buffer (como htop/vim) e esconde cursor
+    printf '\033[?1049h\033[?25l'
+    trap 'printf "\033[?25h\033[?1049l\n"; exit' INT TERM EXIT
+
+    # Inicia serviços
+    printf '\033[H\033[2J'
     echo -e "\n${Y}${BLD}  ⚡ Iniciando serviços BitFood...${RST}\n"
     start_services
     sleep 3
 
-    # Dashboard em loop
+    # Dashboard sem piscar — cursor volta ao topo a cada refresh
     while true; do
-        clear
+        printf '\033[H'   # cursor home, sem apagar a tela
         echo ""
         draw_logo
         draw_status
