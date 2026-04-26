@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════
+#  BitFood — Painel de inicialização do backend
+# ══════════════════════════════════════════════════════════════
+
+BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/backend" && pwd)"
+export PATH=~/.npm-global/bin:$PATH
+
+# ── Cores ────────────────────────────────────────────────────
+R='\e[0;31m'; Y='\e[1;33m'; G='\e[0;32m'; C='\e[0;36m'
+W='\e[1;37m'; D='\e[2m';    B='\e[0;34m'; M='\e[0;35m'
+RST='\e[0m';  BLD='\e[1m';  BG_R='\e[41m'; BG_BLK='\e[40m'
+OK="${G}● online${RST}"; KO="${R}● offline${RST}"; WRN="${Y}● iniciando${RST}"
+
+# ── Funções auxiliares ────────────────────────────────────────
+port_up()   { ss -tlnp 2>/dev/null | grep -q ":$1 "; }
+svc_active(){ systemctl is-active --quiet "$1" 2>/dev/null; }
+pm2_up()    { pm2 list 2>/dev/null | grep -q "$1.*online"; }
+public_ip() { curl -s --max-time 3 https://api.ipify.org 2>/dev/null || echo "—"; }
+local_ip()  { hostname -I 2>/dev/null | awk '{print $1}'; }
+conns()     { ss -tnp 2>/dev/null | grep -c ":4000" || echo 0; }
+mem_used()  {
+    local total free used pct
+    total=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+    free=$(awk '/MemAvailable/{print $2}' /proc/meminfo)
+    used=$(( (total - free) / 1024 ))
+    pct=$(( (total - free) * 100 / total ))
+    echo "${used}MB (${pct}%)"
+}
+node_mem()  {
+    local pid
+    pid=$(pm2 list 2>/dev/null | awk '/bitfood-api/{print $4}')
+    [ -n "$pid" ] && awk '/VmRSS/{printf "%dMB", $2/1024}' /proc/$pid/status 2>/dev/null || echo "—"
+}
+uptime_fmt(){ uptime -p 2>/dev/null | sed 's/up //'; }
+
+# ── Inicializa serviços ───────────────────────────────────────
+start_services() {
+    # MongoDB
+    if ! port_up 27017; then
+        mongod --fork --logpath /tmp/mongod.log --dbpath /var/lib/mongodb 2>/dev/null \
+            || systemctl start mongod 2>/dev/null
+    fi
+
+    # Backend Node.js
+    if pm2_up bitfood-api; then
+        : # já rodando
+    else
+        cd "$BACKEND_DIR"
+        pm2 start server.js --name bitfood-api --update-env 2>/dev/null \
+            || pm2 restart bitfood-api 2>/dev/null
+    fi
+
+    # Cloudflare Tunnel
+    if ! pgrep -x cloudflared > /dev/null; then
+        nohup cloudflared tunnel --config ~/.cloudflared/config.yml run \
+            > /tmp/cloudflared.log 2>&1 &
+    fi
+}
+
+# ── Logo ──────────────────────────────────────────────────────
+draw_logo() {
+    echo -e "${BG_R}${Y}${BLD}                                        ${RST}"
+    echo -e "${BG_R}${Y}${BLD}       /\\                               ${RST}"
+    echo -e "${BG_R}${Y}${BLD}      /  \\    ${W}  B I T F O O D  ${Y}        ${RST}"
+    echo -e "${BG_R}${Y}${BLD}     / /\\ \\   ${D}${W}  Bitcoin · Lightning  ${Y}   ${RST}"
+    echo -e "${BG_R}${Y}${BLD}    / /  \\ \\  ${D}${W}  Food Delivery        ${Y}   ${RST}"
+    echo -e "${BG_R}${Y}${BLD}      \\  /                               ${RST}"
+    echo -e "${BG_R}${Y}${BLD}       \\/                                ${RST}"
+    echo -e "${BG_R}${Y}${BLD}                                        ${RST}"
+}
+
+# ── Painel de status ──────────────────────────────────────────
+draw_status() {
+    local mongo_st node_st cf_st
+
+    port_up 27017  && mongo_st="$OK" || mongo_st="$KO"
+    pm2_up bitfood-api && node_st="$OK" || node_st="$KO"
+    pgrep -x cloudflared > /dev/null && cf_st="$OK" || cf_st="$KO"
+
+    local LIP; LIP=$(local_ip)
+    local CONN; CONN=$(conns)
+    local MEM; MEM=$(mem_used)
+    local NMEM; NMEM=$(node_mem)
+    local UP; UP=$(uptime_fmt)
+
+    echo ""
+    echo -e " ${W}${BLD}╔══════════════════════════════════════════╗${RST}"
+    echo -e " ${W}${BLD}║  Serviços                                ║${RST}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
+    printf  " ${W}${BLD}║${RST}  %-6s  MongoDB              %-12s${W}${BLD}║${RST}\n" "" "$mongo_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  Node.js API (:4000)  %-12s${W}${BLD}║${RST}\n" "" "$node_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  Cloudflare Tunnel    %-12s${W}${BLD}║${RST}\n" "" "$cf_st"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
+    echo -e " ${W}${BLD}║  Rede                                    ║${RST}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
+    echo -e " ${W}${BLD}║${RST}  ${D}IP Local  ${RST}  ${C}${BLD}${LIP}${RST}"
+    echo -e " ${W}${BLD}║${RST}  ${D}API       ${RST}  ${C}${BLD}https://api.bitfood.app/graphql${RST}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Admin     ${RST}  ${C}${BLD}https://bitfood.app${RST}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Conexões  ${RST}  ${Y}${BLD}${CONN} ativas${RST}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
+    echo -e " ${W}${BLD}║  Sistema                                 ║${RST}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
+    echo -e " ${W}${BLD}║${RST}  ${D}RAM total ${RST}  ${MEM}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Node RAM  ${RST}  ${NMEM}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Uptime    ${RST}  ${UP}"
+    echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
+    echo -e " ${W}${BLD}║  ${D}Atualiza a cada 5s · Ctrl+C para sair  ${W}${BLD}║${RST}"
+    echo -e " ${W}${BLD}╚══════════════════════════════════════════╝${RST}"
+}
+
+# ── Loop principal ────────────────────────────────────────────
+main() {
+    # Inicia serviços na primeira vez
+    clear
+    echo -e "\n${Y}${BLD}  ⚡ Iniciando serviços BitFood...${RST}\n"
+    start_services
+    sleep 3
+
+    # Dashboard em loop
+    while true; do
+        clear
+        echo ""
+        draw_logo
+        draw_status
+        sleep 5
+    done
+}
+
+main
