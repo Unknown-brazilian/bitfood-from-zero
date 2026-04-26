@@ -69,14 +69,40 @@ start_services() {
 
 # ── Logo ──────────────────────────────────────────────────────
 draw_logo() {
-    echo -e "${BG_R}${Y}${BLD}                                        ${RST}"
-    echo -e "${BG_R}${Y}${BLD}       /\\                               ${RST}"
-    echo -e "${BG_R}${Y}${BLD}      /  \\    ${W}  B I T F O O D  ${Y}        ${RST}"
-    echo -e "${BG_R}${Y}${BLD}     / /\\ \\   ${D}${W}  Bitcoin · Lightning  ${Y}   ${RST}"
-    echo -e "${BG_R}${Y}${BLD}    / /  \\ \\  ${D}${W}  Food Delivery        ${Y}   ${RST}"
-    echo -e "${BG_R}${Y}${BLD}      \\  /                               ${RST}"
-    echo -e "${BG_R}${Y}${BLD}       \\/                                ${RST}"
-    echo -e "${BG_R}${Y}${BLD}                                        ${RST}"
+    local r='\e[0;41m'   # reset + fundo vermelho
+    local y='\e[1;33m'   # amarelo bold (raio)
+    local w='\e[1;37m'   # branco bold (título)
+    local RS='\e[0m'     # reset total
+    local DM='\e[2;37m'  # branco dim (borda)
+    local L="${DM}│${RS}"
+
+    # ── Caixa vermelha com raio amarelo (20 chars de largura interna) ──
+    #
+    #  Forma do raio (⚡):
+    #  ██████████                ← topo: 10 wide, alinha esquerda
+    #   ██████████               ← desce e desloca 1 direita
+    #    ██████████              ← idem
+    #     █████████████████      ← "cintura": larga, conecta os dois lados
+    #              ██████████    ← base: começa col 9, vai até a borda
+    #               █████████   ← desloca +1
+    #                ████████   ← desloca +1
+    #                 ███████   ← ponta final
+
+    echo -e "      ${DM}╭────────────────────╮${RS}"
+    echo -e "      ${L}${r}                    ${RS}${L}"
+    echo -e "      ${L}${r}${y}██████████${r}          ${RS}${L}"
+    echo -e "      ${L}${r} ${y}██████████${r}         ${RS}${L}"
+    echo -e "      ${L}${r}  ${y}██████████${r}        ${RS}${L}"
+    echo -e "      ${L}${r}   ${y}█████████████████${RS}${L}"
+    echo -e "      ${L}${r}          ${y}██████████${RS}${L}"
+    echo -e "      ${L}${r}           ${y}█████████${RS}${L}"
+    echo -e "      ${L}${r}            ${y}████████${RS}${L}"
+    echo -e "      ${L}${r}             ${y}███████${RS}${L}"
+    echo -e "      ${L}${r}                    ${RS}${L}"
+    echo -e "      ${DM}╰────────────────────╯${RS}"
+    echo ""
+    echo -e "          ${w}B i t F o o d${RS}"
+    echo ""
 }
 
 # ── Painel de status ──────────────────────────────────────────
