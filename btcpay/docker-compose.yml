@@ -1,0 +1,146 @@
+# ═══════════════════════════════════════════════════════════════
+#  BitFood — BTCPay Server Stack
+#
+#  Serviços:
+#    bitcoind  — Bitcoin Core pruned (~9-12 GB disco total)
+#    lnd       — Lightning Network Daemon
+#    postgres  — banco de dados (BTCPay + NBXplorer)
+#    nbxplorer — rastreia endereços Bitcoin para o BTCPay
+#    btcpay    — BTCPay Server (UI + Greenfield API)
+#
+#  Acesso: https://btcpay.bitfood.app  (Cloudflare Tunnel → :8080)
+#  Sync inicial do nó: 1-3 dias (só na primeira vez)
+# ═══════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+x-logging: &log
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+
+  # ── Bitcoin Core (pruned: mantém só 1 GB de blocos recentes) ──
+  # UTXO set (~6-8 GB) é sempre guardado — não é afetado pelo prune.
+  bitcoind:
+    image: btcpayserver/bitcoin:27.0
+    restart: unless-stopped
+    logging: *log
+    environment:
+      BITCOIN_NETWORK: mainnet
+      BITCOIN_EXTRA_ARGS: |-
+        prune=1000
+        maxmempool=300
+        dbcache=512
+        server=1
+        txindex=0
+        rpcbind=0.0.0.0
+        rpcallowip=0.0.0.0/0
+        rpcuser=${BTC_RPC_USER}
+        rpcpassword=${BTC_RPC_PASS}
+        zmqpubrawblock=tcp://0.0.0.0:28332
+        zmqpubrawtx=tcp://0.0.0.0:28333
+    volumes:
+      - bitcoind_data:/data
+    ports:
+      - "8333:8333"   # Bitcoin P2P
+
+  # ── LND — Lightning Network Daemon ────────────────────────────
+  lnd:
+    image: btcpayserver/lnd:v0.18.3-beta
+    restart: unless-stopped
+    logging: *log
+    environment:
+      LND_CHAIN: bitcoin
+      LND_ENVIRONMENT: mainnet
+      LND_EXTRA_ARGS: |-
+        bitcoind.rpchost=bitcoind:8332
+        bitcoind.rpcuser=${BTC_RPC_USER}
+        bitcoind.rpcpassword=${BTC_RPC_PASS}
+        bitcoind.zmqpubrawblock=tcp://bitcoind:28332
+        bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+        restlisten=0.0.0.0:8080
+        rpclisten=0.0.0.0:10009
+        tlsextradomain=lnd
+        alias=BitFood
+        color=#F7931A
+        accept-keysend=true
+        allow-circular-route=true
+    volumes:
+      - lnd_data:/root/.lnd
+    ports:
+      - "9735:9735"   # Lightning P2P
+    depends_on:
+      - bitcoind
+
+  # ── PostgreSQL ─────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    logging: *log
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── NBXplorer — rastreia endereços Bitcoin ─────────────────────
+  nbxplorer:
+    image: nicolasdorier/nbxplorer:2.5.4
+    restart: unless-stopped
+    logging: *log
+    environment:
+      NBXPLORER_NETWORK: mainnet
+      NBXPLORER_BIND: 0.0.0.0:32838
+      NBXPLORER_CHAINS: btc
+      NBXPLORER_BTCRPCURL: http://bitcoind:8332/
+      NBXPLORER_BTCRPCUSER: ${BTC_RPC_USER}
+      NBXPLORER_BTCRPCPASSWORD: ${BTC_RPC_PASS}
+      NBXPLORER_BTCNODEENDPOINT: bitcoind:8333
+      NBXPLORER_POSTGRES: "User ID=postgres;Host=postgres;Port=5432;Database=nbxplorer"
+      NBXPLORER_DBTRIE: 0
+    volumes:
+      - nbxplorer_data:/datadir
+    depends_on:
+      postgres:
+        condition: service_healthy
+      bitcoind:
+        condition: service_started
+
+  # ── BTCPay Server ──────────────────────────────────────────────
+  btcpay:
+    image: btcpayserver/btcpayserver:2.0.2
+    restart: unless-stopped
+    logging: *log
+    environment:
+      BTCPAY_NETWORK: mainnet
+      BTCPAY_ROOTPATH: /
+      BTCPAY_BIND: 0.0.0.0:3000
+      BTCPAY_POSTGRES: "User ID=postgres;Host=postgres;Port=5432;Database=btcpayserver"
+      BTCPAY_NBXPLORERURL: http://nbxplorer:32838/
+      BTCPAY_EXTERNALURL: https://btcpay.bitfood.app
+      # Conexão com LND via REST — lê macaroon direto do volume compartilhado
+      BTCPAY_BTCLIGHTNING: "type=lnd-rest;server=https://lnd:8080;macaroonfilepath=/lnd/data/chain/bitcoin/mainnet/admin.macaroon;allowinsecure=true"
+    ports:
+      - "8080:3000"   # Cloudflare Tunnel: btcpay.bitfood.app → :8080
+    volumes:
+      - btcpay_data:/datadir
+      - lnd_data:/lnd:ro   # somente leitura — acessa macaroons do LND
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nbxplorer:
+        condition: service_started
+      lnd:
+        condition: service_started
+
+volumes:
+  bitcoind_data:
+  lnd_data:
+  postgres_data:
+  nbxplorer_data:
+  btcpay_data:

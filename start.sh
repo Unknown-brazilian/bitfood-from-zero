@@ -109,11 +109,12 @@ draw_logo() {
 
 # ── Painel de status ──────────────────────────────────────────
 draw_status() {
-    local mongo_st node_st landing_st cf_st
+    local mongo_st node_st landing_st btcpay_st cf_st
 
-    port_up 27017  && mongo_st="$OK" || mongo_st="$KO"
+    port_up 27017  && mongo_st="$OK"   || mongo_st="$KO"
     pm2_up bitfood-api && node_st="$OK" || node_st="$KO"
     pm2_up bitfood-landing && landing_st="$OK" || landing_st="$KO"
+    port_up 8080   && btcpay_st="$OK"  || btcpay_st="${WRN} (setup.sh)"
     pgrep -x cloudflared > /dev/null && cf_st="$OK" || cf_st="$KO"
 
     local LIP; LIP=$(local_ip)
@@ -130,6 +131,7 @@ draw_status() {
     printf  " ${W}${BLD}║${RST}  %-6s  MongoDB              %-12s${W}${BLD}║${RST}\033[K\n" "" "$mongo_st"
     printf  " ${W}${BLD}║${RST}  %-6s  Node.js API (:4000)  %-12s${W}${BLD}║${RST}\033[K\n" "" "$node_st"
     printf  " ${W}${BLD}║${RST}  %-6s  Landing page (:3000) %-12s${W}${BLD}║${RST}\033[K\n" "" "$landing_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  BTCPay Server (:8080)%-12s${W}${BLD}║${RST}\033[K\n" "" "$btcpay_st"
     printf  " ${W}${BLD}║${RST}  %-6s  Cloudflare Tunnel    %-12s${W}${BLD}║${RST}\033[K\n" "" "$cf_st"
     echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
     echo -e " ${W}${BLD}║  Rede                                    ║${RST}${EL}"
