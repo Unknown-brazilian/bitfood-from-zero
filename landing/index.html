@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="BitFood — O primeiro app de delivery de comida somente Bitcoin Lightning. Peça comida, pague em sats."/>
+  <meta property="og:title" content="BitFood ⚡"/>
+  <meta property="og:description" content="O primeiro app de delivery somente Bitcoin Lightning."/>
+  <meta property="og:image" content="/og.png"/>
+  <title>BitFood ⚡ — Bitcoin Lightning Food Delivery</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0A0A0F;
+      --orange:   #F7931A;
+      --red:      #E30613;
+      --white:    #FFFFFF;
+      --muted:    rgba(255,255,255,0.55);
+      --card-bg:  rgba(255,255,255,0.04);
+      --card-br:  rgba(255,255,255,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero ───────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 48px 24px 64px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* radial glow behind logo */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(227,6,19,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── Logo ───────────────────────────────────────── */
+    .logo-wrap {
+      position: relative;
+      margin-bottom: 28px;
+      animation: floatY 4s ease-in-out infinite;
+    }
+
+    @keyframes floatY {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    .logo-box {
+      width: 108px;
+      height: 108px;
+      background: var(--red);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      box-shadow:
+        0 0 0 1px rgba(227,6,19,0.4),
+        0 0 40px rgba(227,6,19,0.35),
+        0 0 80px rgba(227,6,19,0.15);
+    }
+
+    /* ── Title ──────────────────────────────────────── */
+    .title {
+      font-size: clamp(2.4rem, 8vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--orange);
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 52px;
+    }
+
+    /* ── Rotating messages ──────────────────────────── */
+    .messages {
+      height: 64px;
+      overflow: hidden;
+      margin-bottom: 56px;
+      position: relative;
+    }
+
+    .msg {
+      position: absolute;
+      width: 100%;
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      color: rgba(255,255,255,0.72);
+      font-weight: 500;
+      line-height: 1.45;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .msg.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Download cards ─────────────────────────────── */
+    .downloads {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 56px;
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .dl-card {
+      flex: 1 1 200px;
+      max-width: 240px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 20px;
+      padding: 24px 20px 20px;
+      text-decoration: none;
+      color: var(--white);
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dl-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(247,147,26,0.4);
+      box-shadow: 0 8px 32px rgba(247,147,26,0.12);
+    }
+
+    .dl-icon { font-size: 40px; }
+
+    .dl-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .dl-name {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .dl-btn {
+      margin-top: 4px;
+      background: var(--orange);
+      color: #000;
+      border-radius: 30px;
+      padding: 8px 22px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dl-card:hover .dl-btn {
+      background: #FFB038;
+    }
+
+    /* ── Beta badge ─────────────────────────────────── */
+    .badge {
+      background: rgba(247,147,26,0.12);
+      border: 1px solid rgba(247,147,26,0.3);
+      color: var(--orange);
+      border-radius: 30px;
+      padding: 6px 18px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* ── Pills row ──────────────────────────────────── */
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 56px;
+    }
+
+    .pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 30px;
+      padding: 8px 18px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Footer ─────────────────────────────────────── */
+    footer {
+      padding: 24px;
+      text-align: center;
+      color: rgba(255,255,255,0.25);
+      font-size: 0.75rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    footer a { color: var(--orange); text-decoration: none; }
+
+    /* ── Scroll indicator ───────────────────────────── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.2);
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; }
+      50%       { opacity: 0.6; }
+    }
+
+    /* ── Responsive ─────────────────────────────────── */
+    @media (max-width: 480px) {
+      .logo-box { width: 88px; height: 88px; font-size: 44px; border-radius: 24px; }
+      .messages { height: 80px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<section class="hero">
+
+  <!-- Glow handled by ::before -->
+
+  <div class="logo-wrap">
+    <div class="logo-box">⚡</div>
+  </div>
+
+  <h1 class="title">BitFood</h1>
+  <p class="subtitle">Bitcoin Lightning · Food Delivery</p>
+
+  <!-- Rotating messages (same as splash screen) -->
+  <div class="messages">
+    <p class="msg active">1st Bitcoin Only food delivery app</p>
+    <p class="msg">We prefer Wallet of Satoshi ⚡</p>
+    <p class="msg">Work everywhere you want,<br>with no borders</p>
+  </div>
+
+  <div class="badge">⚡ Android Beta — v1.2.0</div>
+
+  <!-- Download cards -->
+  <div class="downloads">
+
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.2.0/bitfood-customer-v1.2.0.apk"
+       download>
+      <span class="dl-icon">🛒</span>
+      <span class="dl-label">App do</span>
+      <span class="dl-name">Cliente</span>
+      <span class="dl-btn">⬇ Baixar APK</span>
+    </a>
+
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.2.0/bitfood-restaurant-v1.2.0.apk"
+       download>
+      <span class="dl-icon">🍽️</span>
+      <span class="dl-label">App do</span>
+      <span class="dl-name">Restaurante</span>
+      <span class="dl-btn">⬇ Baixar APK</span>
+    </a>
+
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.2.0/bitfood-rider-v1.2.0.apk"
+       download>
+      <span class="dl-icon">🏍️</span>
+      <span class="dl-label">App do</span>
+      <span class="dl-name">Entregador</span>
+      <span class="dl-btn">⬇ Baixar APK</span>
+    </a>
+
+  </div>
+
+  <!-- Feature pills -->
+  <div class="pills">
+    <span class="pill">⚡ Lightning Network</span>
+    <span class="pill">₿ Somente Bitcoin</span>
+    <span class="pill">🌎 Sem fronteiras</span>
+    <span class="pill">🔒 Sem KYC</span>
+    <span class="pill">🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 idiomas</span>
+  </div>
+
+  <div class="scroll-hint">▼ &nbsp; SAIBA MAIS</div>
+
+</section>
+
+<!-- ── How it works ───────────────────────────────────── -->
+<section style="padding: 80px 24px; max-width: 860px; margin: 0 auto;">
+
+  <h2 style="text-align:center; font-size: clamp(1.4rem,4vw,2rem); font-weight:800; margin-bottom:48px;">
+    Como funciona
+  </h2>
+
+  <div style="display:flex; flex-wrap:wrap; gap:24px; justify-content:center;">
+
+    <div style="flex:1 1 220px; max-width:260px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-align:center;">
+      <div style="font-size:2.4rem; margin-bottom:16px;">📱</div>
+      <h3 style="font-weight:700; margin-bottom:8px;">1. Baixe o app</h3>
+      <p style="color:var(--muted); font-size:0.88rem; line-height:1.5;">Instale o APK do cliente no seu Android. Sem Play Store — direto e simples.</p>
+    </div>
+
+    <div style="flex:1 1 220px; max-width:260px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-align:center;">
+      <div style="font-size:2.4rem; margin-bottom:16px;">🍕</div>
+      <h3 style="font-weight:700; margin-bottom:8px;">2. Escolha e peça</h3>
+      <p style="color:var(--muted); font-size:0.88rem; line-height:1.5;">Navegue pelos restaurantes disponíveis na sua área e monte seu pedido.</p>
+    </div>
+
+    <div style="flex:1 1 220px; max-width:260px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-align:center;">
+      <div style="font-size:2.4rem; margin-bottom:16px;">⚡</div>
+      <h3 style="font-weight:700; margin-bottom:8px;">3. Pague em sats</h3>
+      <p style="color:var(--muted); font-size:0.88rem; line-height:1.5;">Escaneie o invoice Lightning com sua Wallet of Satoshi ou outra carteira compatível.</p>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────── -->
+<footer>
+  <p style="margin-bottom:8px;">
+    BitFood &copy; 2025 — Open Source &nbsp;·&nbsp;
+    <a href="https://github.com/Unknown-brazilian/bitfood-from-zero" target="_blank">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases" target="_blank">Releases</a>
+  </p>
+  <p>Construído sobre a rede Bitcoin Lightning ⚡</p>
+</footer>
+
+<script>
+  // Rotating messages — mesma lógica da splash screen
+  const msgs = document.querySelectorAll('.msg');
+  let cur = 0;
+
+  setInterval(() => {
+    msgs[cur].classList.remove('active');
+    cur = (cur + 1) % msgs.length;
+    msgs[cur].classList.add('active');
+  }, 3400);
+</script>
+
+</body>
+</html>

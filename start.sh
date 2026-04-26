@@ -4,6 +4,7 @@
 # ══════════════════════════════════════════════════════════════
 
 BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/backend" && pwd)"
+LANDING_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/landing" && pwd)"
 export PATH=~/.npm-global/bin:$PATH
 
 # ── Cores ────────────────────────────────────────────────────
@@ -51,6 +52,14 @@ start_services() {
             || pm2 restart bitfood-api 2>/dev/null
     fi
 
+    # Landing page (:3000)
+    if pm2_up bitfood-landing; then
+        : # já rodando
+    else
+        pm2 start "$LANDING_DIR/serve.js" --name bitfood-landing --update-env 2>/dev/null \
+            || pm2 restart bitfood-landing 2>/dev/null
+    fi
+
     # Cloudflare Tunnel
     if ! pgrep -x cloudflared > /dev/null; then
         nohup cloudflared tunnel --config ~/.cloudflared/config.yml run \
@@ -72,10 +81,11 @@ draw_logo() {
 
 # ── Painel de status ──────────────────────────────────────────
 draw_status() {
-    local mongo_st node_st cf_st
+    local mongo_st node_st landing_st cf_st
 
     port_up 27017  && mongo_st="$OK" || mongo_st="$KO"
     pm2_up bitfood-api && node_st="$OK" || node_st="$KO"
+    pm2_up bitfood-landing && landing_st="$OK" || landing_st="$KO"
     pgrep -x cloudflared > /dev/null && cf_st="$OK" || cf_st="$KO"
 
     local LIP; LIP=$(local_ip)
@@ -90,6 +100,7 @@ draw_status() {
     echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
     printf  " ${W}${BLD}║${RST}  %-6s  MongoDB              %-12s${W}${BLD}║${RST}\n" "" "$mongo_st"
     printf  " ${W}${BLD}║${RST}  %-6s  Node.js API (:4000)  %-12s${W}${BLD}║${RST}\n" "" "$node_st"
+    printf  " ${W}${BLD}║${RST}  %-6s  Landing page (:3000) %-12s${W}${BLD}║${RST}\n" "" "$landing_st"
     printf  " ${W}${BLD}║${RST}  %-6s  Cloudflare Tunnel    %-12s${W}${BLD}║${RST}\n" "" "$cf_st"
     echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}"
     echo -e " ${W}${BLD}║  Rede                                    ║${RST}"
