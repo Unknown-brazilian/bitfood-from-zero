@@ -69,44 +69,6 @@ start_services() {
     fi
 }
 
-# ── Logo ──────────────────────────────────────────────────────
-draw_logo() {
-    local r=$'\e[0;41m'   # reset + fundo vermelho
-    local y=$'\e[1;33m'   # amarelo bold (raio)
-    local w=$'\e[1;37m'   # branco bold (título)
-    local RS=$'\e[0m'     # reset total
-    local DM=$'\e[2;37m'  # branco dim (borda)
-    local L="${DM}│${RS}"
-
-    # ── Caixa vermelha com raio amarelo (20 chars de largura interna) ──
-    #
-    #  Forma do raio (⚡):
-    #  ██████████                ← topo: 10 wide, alinha esquerda
-    #   ██████████               ← desce e desloca 1 direita
-    #    ██████████              ← idem
-    #     █████████████████      ← "cintura": larga, conecta os dois lados
-    #              ██████████    ← base: começa col 9, vai até a borda
-    #               █████████   ← desloca +1
-    #                ████████   ← desloca +1
-    #                 ███████   ← ponta final
-
-    echo -e "      ${DM}╭────────────────────╮${RS}"
-    echo -e "      ${L}${r}                    ${RS}${L}"
-    echo -e "      ${L}${r}${y}██████████${r}          ${RS}${L}"
-    echo -e "      ${L}${r} ${y}██████████${r}         ${RS}${L}"
-    echo -e "      ${L}${r}  ${y}██████████${r}        ${RS}${L}"
-    echo -e "      ${L}${r}   ${y}█████████████████${RS}${L}"
-    echo -e "      ${L}${r}          ${y}██████████${RS}${L}"
-    echo -e "      ${L}${r}           ${y}█████████${RS}${L}"
-    echo -e "      ${L}${r}            ${y}████████${RS}${L}"
-    echo -e "      ${L}${r}             ${y}███████${RS}${L}"
-    echo -e "      ${L}${r}                    ${RS}${L}"
-    echo -e "      ${DM}╰────────────────────╯${RS}"
-    echo ""
-    echo -e "          ${w}B i t F o o d${RS}"
-    echo ""
-}
-
 # ── Painel de status ──────────────────────────────────────────
 draw_status() {
     local mongo_st node_st landing_st btcpay_st cf_st
@@ -147,7 +109,7 @@ draw_status() {
     echo -e " ${W}${BLD}║${RST}  ${D}Node RAM  ${RST}  ${NMEM}${EL}"
     echo -e " ${W}${BLD}║${RST}  ${D}Uptime    ${RST}  ${UP}${EL}"
     echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
-    echo -e " ${W}${BLD}║  ${D}Atualiza a cada 5s · Ctrl+C para sair  ${W}${BLD}║${RST}${EL}"
+    echo -e " ${W}${BLD}║  ${D}Atualiza a cada 10min · Ctrl+C para sair${W}${BLD}║${RST}${EL}"
     echo -e " ${W}${BLD}╚══════════════════════════════════════════╝${RST}${EL}"
 }
 
@@ -166,10 +128,8 @@ main() {
     # Dashboard sem piscar — no alternate screen, 2J não causa flicker
     while true; do
         printf '\033[2J\033[H'   # limpa + cursor home
-        echo ""
-        draw_logo
         draw_status
-        sleep 5
+        sleep 600
     done
 }
 
