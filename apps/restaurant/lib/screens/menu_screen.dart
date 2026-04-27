@@ -87,9 +87,15 @@ class _AddFoodSheetState extends State<_AddFoodSheet> {
   final _priceCtrl = TextEditingController();
   final _newCatCtrl = TextEditingController();
   String? _selectedCategoryId;
-  bool _creatingNewCat = false;
+  late bool _creatingNewCat;
   bool _loading = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _creatingNewCat = widget.categories.isEmpty;
+  }
 
   @override
   void dispose() {
