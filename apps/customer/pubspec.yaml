@@ -29,7 +29,7 @@ dependencies:
   # Location
   geolocator: ^11.0.0
   geocoding: ^3.0.0
-  country_state_city: ^3.0.0
+  country_state_city: ^0.1.6
 
   # Notifications
   flutter_local_notifications: ^17.2.2
