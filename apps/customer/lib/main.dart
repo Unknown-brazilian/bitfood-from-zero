@@ -12,6 +12,7 @@ import 'screens/terms_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'services/notification_service.dart';
+import 'services/location_service.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 void main() async {
@@ -19,6 +20,7 @@ void main() async {
   await GraphQLService.init();
   await NotificationService.init();
   final localeProvider = await LocaleProvider.load();
+  LocationService.detectCountry();
   runApp(BitFoodApp(localeProvider: localeProvider));
 }
 
