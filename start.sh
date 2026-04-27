@@ -39,10 +39,25 @@ uptime_fmt(){ uptime -p 2>/dev/null | sed 's/up //'; }
 
 # ── Inicializa serviços ───────────────────────────────────────
 start_services() {
+    # Validação de segurança antes de subir
+    local jwt_secret
+    jwt_secret=$(grep -oP '(?<=JWT_SECRET=).+' "$BACKEND_DIR/.env" 2>/dev/null || true)
+    if [ -z "$jwt_secret" ] || [ "${#jwt_secret}" -lt 32 ]; then
+        echo -e "\n${R}${BLD}  ERRO: JWT_SECRET ausente ou fraco em backend/.env${RST}"
+        echo -e "  Gere um novo: openssl rand -base64 48"
+        sleep 5
+    fi
+
     # MongoDB
     if ! port_up 27017; then
         mongod --fork --logpath /tmp/mongod.log --dbpath /var/lib/mongodb 2>/dev/null \
             || systemctl start mongod 2>/dev/null
+    fi
+
+    # Garantir dependências do backend atualizadas
+    if [ "$BACKEND_DIR/package.json" -nt "$BACKEND_DIR/node_modules/.package-lock.json" ] 2>/dev/null \
+       || [ ! -d "$BACKEND_DIR/node_modules/express-rate-limit" ]; then
+        cd "$BACKEND_DIR" && npm install --silent 2>/dev/null || true
     fi
 
     # Backend Node.js
@@ -63,7 +78,10 @@ start_services() {
     fi
 
     # Cloudflare Tunnel
-    if ! pgrep -x cloudflared > /dev/null; then
+    # Se instalado como serviço systemd (via deploy.sh), não sobe manualmente
+    if svc_active cloudflared; then
+        : # gerenciado pelo systemd
+    elif ! pgrep -x cloudflared > /dev/null; then
         nohup cloudflared tunnel --config ~/.cloudflared/config.yml run \
             > /tmp/cloudflared.log 2>&1 &
     fi
@@ -99,8 +117,8 @@ draw_status() {
     echo -e " ${W}${BLD}║  Rede                                    ║${RST}${EL}"
     echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
     echo -e " ${W}${BLD}║${RST}  ${D}IP Local  ${RST}  ${C}${BLD}${LIP}${RST}${EL}"
+    echo -e " ${W}${BLD}║${RST}  ${D}Landing   ${RST}  ${C}${BLD}https://bitfood.app${RST}${EL}"
     echo -e " ${W}${BLD}║${RST}  ${D}API       ${RST}  ${C}${BLD}https://api.bitfood.app/graphql${RST}${EL}"
-    echo -e " ${W}${BLD}║${RST}  ${D}Admin     ${RST}  ${C}${BLD}https://bitfood.app${RST}${EL}"
     echo -e " ${W}${BLD}║${RST}  ${D}Conexões  ${RST}  ${Y}${BLD}${CONN} ativas${RST}${EL}"
     echo -e " ${W}${BLD}╠══════════════════════════════════════════╣${RST}${EL}"
     echo -e " ${W}${BLD}║  Sistema                                 ║${RST}${EL}"
