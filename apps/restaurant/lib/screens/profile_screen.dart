@@ -75,6 +75,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
   }
 
   bool get _nameLocked => widget.restaurant?['nameLocked'] == true;
+  bool get _lightningLocked => widget.restaurant?['lightningAddressLocked'] == true;
 
   Future<void> _save() async {
     setState(() { _loading = true; _error = null; _success = null; });
@@ -213,7 +214,24 @@ class _ProfileBodyState extends State<_ProfileBody> {
           _field('Telefone', _phoneCtrl, keyboard: TextInputType.phone, hint: '+55 11 99999-9999'),
           _field('Endereço', _addressCtrl, hint: 'Rua das Flores, 123 - São Paulo, SP'),
           _field('Logo (URL da imagem)', _logoCtrl, hint: 'https://...', keyboard: TextInputType.url),
+          if (_lightningLocked)
+            Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFA5D6A7)),
+              ),
+              child: const Row(children: [
+                Icon(Icons.lock_outline, size: 15, color: Color(0xFF388E3C)),
+                SizedBox(width: 8),
+                Expanded(child: Text('Carteira vinculada e bloqueada. Contate o suporte para alterar.',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32)))),
+              ]),
+            ),
           _field('Lightning Address ⚡', _lightningCtrl,
+              enabled: !_lightningLocked,
               hint: 'ex: restaurante@walletofsatoshi.com',
               keyboard: TextInputType.emailAddress),
 

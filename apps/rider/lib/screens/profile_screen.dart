@@ -90,6 +90,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
   }
 
   bool get _nameLocked => widget.me?['nameLocked'] == true;
+  bool get _lightningLocked => widget.me?['lightningAddressLocked'] == true;
 
   Future<void> _save() async {
     setState(() { _loading = true; _error = null; _success = null; });
@@ -290,35 +291,55 @@ class _ProfileBodyState extends State<_ProfileBody> {
                   decoration: BoxDecoration(color: const Color(0xFFFFF0F0), borderRadius: BorderRadius.circular(6)),
                   child: Text(_lightningError!, style: const TextStyle(color: AppColors.primary, fontSize: 12)),
                 ),
+              if (_lightningLocked)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFA5D6A7)),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.lock_outline, size: 15, color: Color(0xFF388E3C)),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('Carteira vinculada e bloqueada. Contate o suporte para alterar.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32)))),
+                  ]),
+                ),
               TextField(
                 controller: _lightningCtrl,
+                enabled: !_lightningLocked,
                 keyboardType: TextInputType.emailAddress,
                 autocorrect: false,
                 decoration: InputDecoration(
                   hintText: 'ex: voce@walletofsatoshi.com',
                   filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
+                  fillColor: _lightningLocked ? const Color(0xFFEEEEEE) : const Color(0xFFF5F5F5),
                   border: const OutlineInputBorder(),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  suffixIcon: _lightningLocked ? const Icon(Icons.lock_outline, size: 18, color: AppColors.textLight) : null,
                 ),
               ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _savingLightning ? null : _saveLightning,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _lightningSaved ? AppColors.success : const Color(0xFFFF6900),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              if (!_lightningLocked) ...[
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _savingLightning ? null : _saveLightning,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _lightningSaved ? AppColors.success : const Color(0xFFFF6900),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: _savingLightning
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(_lightningSaved ? 'Salvo!' : 'Salvar Lightning Address',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
                   ),
-                  child: _savingLightning
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text(_lightningSaved ? 'Salvo!' : 'Salvar Lightning Address',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
                 ),
-              ),
+              ],
             ]),
           ),
           const SizedBox(height: 20),

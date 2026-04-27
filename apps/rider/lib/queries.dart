@@ -94,7 +94,7 @@ const orderHeatmapQuery = r'''
 const meQuery = r'''
   query Me {
     me {
-      _id name phone vehicleType nameLocked available lightningAddress zone { _id }
+      _id name phone vehicleType nameLocked available lightningAddress lightningAddressLocked zone { _id }
     }
   }
 ''';
@@ -108,9 +108,9 @@ const updateProfileMutation = r'''
 ''';
 
 const setLightningAddressMutation = r'''
-  mutation SetLightningAddress($lightningAddress: String) {
+  mutation SetLightningAddress($lightningAddress: String!) {
     setLightningAddress(lightningAddress: $lightningAddress) {
-      _id lightningAddress
+      _id lightningAddress lightningAddressLocked nameLocked
     }
   }
 ''';

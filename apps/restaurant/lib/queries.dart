@@ -17,7 +17,7 @@ const registerRestaurantMutation = r'''
 const meRestaurantQuery = r'''
   query MyRestaurantProfile {
     myRestaurant {
-      _id name email phone address logo nameLocked isAvailable lightningAddress
+      _id name email phone address logo nameLocked isAvailable lightningAddress lightningAddressLocked
     }
   }
 ''';
