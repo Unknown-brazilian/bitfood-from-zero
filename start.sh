@@ -50,7 +50,9 @@ start_services() {
 
     # MongoDB
     if ! port_up 27017; then
-        mongod --fork --logpath /tmp/mongod.log --dbpath /var/lib/mongodb 2>/dev/null \
+        mkdir -p "$HOME/mongodb-data"
+        mongod --fork --logpath /tmp/mongod.log --dbpath "$HOME/mongodb-data" 2>/dev/null \
+            || mongod --fork --logpath /tmp/mongod.log --dbpath /var/lib/mongodb 2>/dev/null \
             || systemctl start mongod 2>/dev/null
     fi
 
