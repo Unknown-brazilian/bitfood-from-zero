@@ -129,11 +129,27 @@ const String orderDetailQuery = r'''
 const String meQuery = r'''
   query Me {
     me {
-      _id name email phone
+      _id name email phone lightningAddress balanceSats
       addresses {
         _id label address street number complement neighborhood postalCode city state country details isDefault
         location { lat lng }
       }
+    }
+  }
+''';
+
+const String setLightningAddressMutation = r'''
+  mutation SetLightningAddress($lightningAddress: String) {
+    setLightningAddress(lightningAddress: $lightningAddress) {
+      _id lightningAddress
+    }
+  }
+''';
+
+const String createDepositInvoiceMutation = r'''
+  mutation CreateDepositInvoice($amountSats: Int!) {
+    createDepositInvoice(amountSats: $amountSats) {
+      invoiceId lightningInvoice checkoutUrl expiresAt
     }
   }
 ''';

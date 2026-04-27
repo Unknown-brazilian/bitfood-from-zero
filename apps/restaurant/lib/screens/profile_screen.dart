@@ -35,6 +35,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
   late final TextEditingController _phoneCtrl;
   late final TextEditingController _addressCtrl;
   late final TextEditingController _logoCtrl;
+  late final TextEditingController _lightningCtrl;
   bool _loading = false;
   String? _error;
   String? _success;
@@ -47,6 +48,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
     _phoneCtrl = TextEditingController(text: r['phone'] ?? '');
     _addressCtrl = TextEditingController(text: r['address'] ?? '');
     _logoCtrl = TextEditingController(text: r['logo'] ?? '');
+    _lightningCtrl = TextEditingController(text: r['lightningAddress'] ?? '');
   }
 
   @override
@@ -58,6 +60,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
       if (_phoneCtrl.text.isEmpty) _phoneCtrl.text = r['phone'] ?? '';
       if (_addressCtrl.text.isEmpty) _addressCtrl.text = r['address'] ?? '';
       if (_logoCtrl.text.isEmpty) _logoCtrl.text = r['logo'] ?? '';
+      if (_lightningCtrl.text.isEmpty) _lightningCtrl.text = r['lightningAddress'] ?? '';
     }
   }
 
@@ -67,6 +70,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
     _phoneCtrl.dispose();
     _addressCtrl.dispose();
     _logoCtrl.dispose();
+    _lightningCtrl.dispose();
     super.dispose();
   }
 
@@ -83,6 +87,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
           'phone': _phoneCtrl.text.trim(),
           'address': _addressCtrl.text.trim(),
           if (_logoCtrl.text.trim().isNotEmpty) 'logo': _logoCtrl.text.trim(),
+          'lightningAddress': _lightningCtrl.text.trim().isEmpty ? null : _lightningCtrl.text.trim(),
         },
       ));
       if (result.hasException) throw result.exception!;
@@ -208,6 +213,9 @@ class _ProfileBodyState extends State<_ProfileBody> {
           _field('Telefone', _phoneCtrl, keyboard: TextInputType.phone, hint: '+55 11 99999-9999'),
           _field('Endereço', _addressCtrl, hint: 'Rua das Flores, 123 - São Paulo, SP'),
           _field('Logo (URL da imagem)', _logoCtrl, hint: 'https://...', keyboard: TextInputType.url),
+          _field('Lightning Address ⚡', _lightningCtrl,
+              hint: 'ex: restaurante@walletofsatoshi.com',
+              keyboard: TextInputType.emailAddress),
 
           ElevatedButton(
             onPressed: _loading ? null : _save,

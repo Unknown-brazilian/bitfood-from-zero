@@ -32,16 +32,21 @@ class _ProfileBody extends StatefulWidget {
 
 class _ProfileBodyState extends State<_ProfileBody> {
   late final TextEditingController _nameCtrl;
+  late final TextEditingController _lightningCtrl;
   String _vehicleType = 'BICYCLE';
   bool _loading = false;
+  bool _savingLightning = false;
+  bool _lightningSaved = false;
   String? _error;
   String? _success;
+  String? _lightningError;
 
   @override
   void initState() {
     super.initState();
     final me = widget.me ?? {};
     _nameCtrl = TextEditingController(text: me['name'] ?? '');
+    _lightningCtrl = TextEditingController(text: me['lightningAddress'] ?? '');
     _vehicleType = me['vehicleType'] ?? 'BICYCLE';
   }
 
@@ -50,6 +55,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
     super.didUpdateWidget(old);
     if (old.me != widget.me && widget.me != null) {
       if (_nameCtrl.text.isEmpty) _nameCtrl.text = widget.me!['name'] ?? '';
+      if (_lightningCtrl.text.isEmpty) _lightningCtrl.text = widget.me!['lightningAddress'] ?? '';
       setState(() => _vehicleType = widget.me!['vehicleType'] ?? 'BICYCLE');
     }
   }
@@ -57,7 +63,30 @@ class _ProfileBodyState extends State<_ProfileBody> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _lightningCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveLightning() async {
+    final addr = _lightningCtrl.text.trim();
+    setState(() { _savingLightning = true; _lightningError = null; });
+    try {
+      final client = GraphQLProvider.of(context).value;
+      final res = await client.mutate(MutationOptions(
+        document: gql(setLightningAddressMutation),
+        variables: { 'lightningAddress': addr.isEmpty ? null : addr },
+      ));
+      if (res.hasException) throw res.exception!;
+      widget.refetch?.call();
+      setState(() { _lightningSaved = true; _savingLightning = false; });
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) setState(() => _lightningSaved = false);
+    } catch (e) {
+      setState(() {
+        _lightningError = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
+        _savingLightning = false;
+      });
+    }
   }
 
   bool get _nameLocked => widget.me?['nameLocked'] == true;
@@ -234,6 +263,65 @@ class _ProfileBodyState extends State<_ProfileBody> {
             ),
           ),
           const SizedBox(height: 24),
+
+          // ── Lightning Address ────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.cardWhite,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                Icon(Icons.electric_bolt, color: Color(0xFFFF6900), size: 18),
+                SizedBox(width: 6),
+                Text('Lightning Address ⚡',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+              ]),
+              const SizedBox(height: 4),
+              const Text('Endereço para receber seus ganhos via Lightning Network.',
+                  style: TextStyle(fontSize: 11, color: AppColors.textGrey)),
+              const SizedBox(height: 10),
+              if (_lightningError != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF0F0), borderRadius: BorderRadius.circular(6)),
+                  child: Text(_lightningError!, style: const TextStyle(color: AppColors.primary, fontSize: 12)),
+                ),
+              TextField(
+                controller: _lightningCtrl,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                decoration: InputDecoration(
+                  hintText: 'ex: voce@walletofsatoshi.com',
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _savingLightning ? null : _saveLightning,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _lightningSaved ? AppColors.success : const Color(0xFFFF6900),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: _savingLightning
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text(_lightningSaved ? 'Salvo!' : 'Salvar Lightning Address',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                ),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 20),
 
           ElevatedButton(
             onPressed: _loading ? null : _save,

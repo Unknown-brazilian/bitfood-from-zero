@@ -17,15 +17,15 @@ const registerRestaurantMutation = r'''
 const meRestaurantQuery = r'''
   query MyRestaurantProfile {
     myRestaurant {
-      _id name email phone address logo nameLocked isAvailable
+      _id name email phone address logo nameLocked isAvailable lightningAddress
     }
   }
 ''';
 
 const updateRestaurantProfileMutation = r'''
-  mutation UpdateRestaurantProfile($name: String, $phone: String, $address: String, $logo: String) {
-    updateRestaurantProfile(name: $name, phone: $phone, address: $address, logo: $logo) {
-      _id name email phone address logo nameLocked
+  mutation UpdateRestaurantProfile($name: String, $phone: String, $address: String, $logo: String, $lightningAddress: String) {
+    updateRestaurantProfile(name: $name, phone: $phone, address: $address, logo: $logo, lightningAddress: $lightningAddress) {
+      _id name email phone address logo nameLocked lightningAddress
     }
   }
 ''';
