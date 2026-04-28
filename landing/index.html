@@ -32,6 +32,36 @@
       overflow-x: hidden;
     }
 
+    /* ── Language switcher ──────────────────────────────── */
+    #lang-switcher {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      display: flex;
+      gap: 4px;
+      background: rgba(10,10,15,0.85);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 30px;
+      padding: 5px 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .lang-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 3px 4px;
+      border-radius: 6px;
+      opacity: 0.45;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .lang-btn:hover  { opacity: 0.85; transform: scale(1.15); }
+    .lang-btn.active { opacity: 1; }
+
     /* ── Hero ───────────────────────────────────────── */
     .hero {
       display: flex;
@@ -44,7 +74,6 @@
       position: relative;
     }
 
-    /* radial glow behind logo */
     .hero::before {
       content: '';
       position: absolute;
@@ -189,9 +218,7 @@
       gap: 6px;
     }
 
-    .dl-card:hover .dl-btn {
-      background: #FFB038;
-    }
+    .dl-card:hover .dl-btn { background: #FFB038; }
 
     /* ── Beta badge ─────────────────────────────────── */
     .badge {
@@ -259,7 +286,6 @@
     }
 
     .release-notes summary::-webkit-details-marker { display: none; }
-
     .release-notes[open] summary { margin-bottom: 14px; }
 
     .release-notes-body {
@@ -280,12 +306,7 @@
     }
 
     .release-notes-body h4:first-child { margin-top: 0; }
-
-    .release-notes-body ul {
-      margin: 0;
-      padding-left: 18px;
-    }
-
+    .release-notes-body ul { margin: 0; padding-left: 18px; }
     .release-notes-body li { margin-bottom: 4px; }
 
     .release-tag {
@@ -362,26 +383,33 @@
       font-size: 0.7rem;
       letter-spacing: 2px;
       animation: pulse 2s ease-in-out infinite;
+      white-space: nowrap;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 0.2; }
-      50%       { opacity: 0.6; }
-    }
+    @keyframes pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.6; } }
 
     /* ── Responsive ─────────────────────────────────── */
     @media (max-width: 480px) {
       .logo-box { width: 88px; height: 88px; font-size: 44px; border-radius: 24px; }
       .messages { height: 80px; }
+      #lang-switcher { top: 10px; right: 10px; padding: 4px 6px; }
+      .lang-btn { font-size: 1.1rem; }
     }
   </style>
 </head>
 
 <body>
 
-<section class="hero">
+<!-- ── Language switcher ───────────────────────────────── -->
+<div id="lang-switcher">
+  <button class="lang-btn" data-lang="pt" title="Português">🇧🇷</button>
+  <button class="lang-btn" data-lang="en" title="English">🇺🇸</button>
+  <button class="lang-btn" data-lang="es" title="Español">🇲🇽</button>
+  <button class="lang-btn" data-lang="fr" title="Français">🇫🇷</button>
+  <button class="lang-btn" data-lang="gn" title="Guaraní">🇵🇾</button>
+</div>
 
-  <!-- Glow handled by ::before -->
+<section class="hero">
 
   <div class="logo-wrap">
     <div class="logo-box">⚡</div>
@@ -390,14 +418,13 @@
   <h1 class="title">BitFood</h1>
   <p class="subtitle">Bitcoin Lightning · Food Delivery</p>
 
-  <!-- Rotating messages (same as splash screen) -->
   <div class="messages">
-    <p class="msg active">1st Bitcoin Only food delivery app</p>
-    <p class="msg">We prefer Wallet of Satoshi ⚡</p>
-    <p class="msg">Work everywhere you want,<br>with no borders</p>
+    <p class="msg active" id="msg-0"></p>
+    <p class="msg"        id="msg-1"></p>
+    <p class="msg"        id="msg-2"></p>
   </div>
 
-  <div class="badge">⚠️ Alpha · Pré-Beta — v1.0.9</div>
+  <div class="badge" id="t-badge"></div>
 
   <!-- Alpha warning -->
   <div style="
@@ -411,9 +438,8 @@
     line-height:1.6;
     text-align:left;
   ">
-    <strong style="color:var(--orange);">⚠️ Fase Alpha:</strong>
-    este app está em desenvolvimento ativo. Funcionalidades podem mudar, bugs são esperados
-    e dados podem ser resetados sem aviso. Use apenas para testes.
+    <strong id="t-alpha-label" style="color:var(--orange);"></strong>
+    <span id="t-alpha-body"></span>
   </div>
 
   <!-- Download cards -->
@@ -423,65 +449,190 @@
        href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.0.9/bitfood-customer-v1.0.9.apk"
        download>
       <span class="dl-icon">🛒</span>
-      <span class="dl-label">App do</span>
-      <span class="dl-name">Cliente</span>
-      <span class="dl-btn">⬇ Baixar APK</span>
+      <span class="dl-label" id="t-dl-label-0"></span>
+      <span class="dl-name"  id="t-dl-name-0"></span>
+      <span class="dl-btn"   id="t-dl-btn-0"></span>
     </a>
 
     <a class="dl-card"
        href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.0.9/bitfood-restaurant-v1.0.9.apk"
        download>
       <span class="dl-icon">🍽️</span>
-      <span class="dl-label">App do</span>
-      <span class="dl-name">Restaurante</span>
-      <span class="dl-btn">⬇ Baixar APK</span>
+      <span class="dl-label" id="t-dl-label-1"></span>
+      <span class="dl-name"  id="t-dl-name-1"></span>
+      <span class="dl-btn"   id="t-dl-btn-1"></span>
     </a>
 
     <a class="dl-card"
        href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.0.9/bitfood-rider-v1.0.9.apk"
        download>
       <span class="dl-icon">🏍️</span>
-      <span class="dl-label">App do</span>
-      <span class="dl-name">Entregador</span>
-      <span class="dl-btn">⬇ Baixar APK</span>
+      <span class="dl-label" id="t-dl-label-2"></span>
+      <span class="dl-name"  id="t-dl-name-2"></span>
+      <span class="dl-btn"   id="t-dl-btn-2"></span>
     </a>
 
   </div>
 
   <!-- Release notes -->
   <details class="release-notes">
-    <summary>📋 Notas da versão v1.0.9 ▾</summary>
+    <summary id="t-release-summary"></summary>
     <div class="release-notes-body">
-      <h4><span class="release-tag">v1.0.9</span> Restaurante &amp; Entregador — 28 abr 2026</h4>
-      <ul>
-        <li><strong>Restaurante:</strong> corrigido erro ao criar conta (duplicate key no username)</li>
-        <li><strong>Restaurante:</strong> login agora aceita e-mail ou username</li>
-        <li><strong>Restaurante:</strong> corrigido erro "selecione ou crie uma categoria" ao adicionar o primeiro item do cardápio</li>
-        <li><strong>Restaurante &amp; Entregador:</strong> Lightning Address vinculada à conta de forma permanente — imutável após salvar</li>
-        <li><strong>Todos:</strong> carteira Lightning recuperada automaticamente ao fazer login</li>
-      </ul>
 
-      <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — lançamento inicial</h4>
-      <ul>
-        <li>Cadastro de Lightning Address para receber saques (restaurante e entregador)</li>
-        <li>Cliente pode adicionar fundos via invoice Lightning</li>
-        <li>Seleção de endereço de entrega com GPS e cascata País → Estado → Cidade</li>
-        <li>Suporte a 5 idiomas: 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
-      </ul>
+      <!-- PT -->
+      <div class="release-lang" data-for-lang="pt">
+        <h4><span class="release-tag">v1.1.0</span> Sistema de Reputação — 28 abr 2026</h4>
+        <ul>
+          <li><strong>Tiers de confiança:</strong> contas começam no nível Novo (máx. 5.000 sats/pedido) e sobem para Básico → Confiável → Veterano com mais pedidos concluídos</li>
+          <li><strong>Limite por pedido:</strong> Novo: 5k · Básico: 50k · Confiável: 500k · Veterano: sem limite</li>
+          <li><strong>Avaliação pós-entrega:</strong> cliente pode avaliar restaurante e entregador de 1 a 5 estrelas após receber o pedido</li>
+          <li><strong>Score de reputação:</strong> média ponderada de todas as avaliações; score baixo impede subir de tier</li>
+          <li><strong>Sistema de disputas:</strong> cliente pode abrir disputa em pedidos entregues; GPS do entregador é verificado automaticamente</li>
+          <li><strong>Resolução automática:</strong> se o GPS confirma entrega no endereço (≤ 200m), disputa é encerrada automaticamente em favor do entregador</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.9</span> Restaurante &amp; Entregador — 28 abr 2026</h4>
+        <ul>
+          <li><strong>Restaurante:</strong> corrigido erro ao criar conta (duplicate key no username)</li>
+          <li><strong>Restaurante:</strong> login agora aceita e-mail ou username</li>
+          <li><strong>Restaurante:</strong> corrigido erro "selecione ou crie uma categoria" ao adicionar o primeiro item do cardápio</li>
+          <li><strong>Restaurante &amp; Entregador:</strong> Lightning Address vinculada à conta de forma permanente — imutável após salvar</li>
+          <li><strong>Todos:</strong> carteira Lightning recuperada automaticamente ao fazer login</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — lançamento inicial</h4>
+        <ul>
+          <li>Cadastro de Lightning Address para receber saques (restaurante e entregador)</li>
+          <li>Cliente pode adicionar fundos via invoice Lightning</li>
+          <li>Seleção de endereço de entrega com GPS e cascata País → Estado → Cidade</li>
+          <li>Suporte a 5 idiomas: 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
+        </ul>
+      </div>
+
+      <!-- EN -->
+      <div class="release-lang" data-for-lang="en">
+        <h4><span class="release-tag">v1.1.0</span> Reputation System — Apr 28 2026</h4>
+        <ul>
+          <li><strong>Trust tiers:</strong> accounts start at New tier (max 5,000 sats/order) and advance to Basic → Trusted → Veteran with more completed orders</li>
+          <li><strong>Order limit per tier:</strong> New: 5k · Basic: 50k · Trusted: 500k · Veteran: no limit</li>
+          <li><strong>Post-delivery rating:</strong> customer can rate restaurant and rider from 1 to 5 stars after receiving the order</li>
+          <li><strong>Reputation score:</strong> weighted average of all ratings; low score blocks tier upgrades</li>
+          <li><strong>Dispute system:</strong> customer can open a dispute on delivered orders; rider GPS is automatically verified</li>
+          <li><strong>Auto-resolution:</strong> if GPS confirms delivery at the address (≤ 200m), dispute is automatically resolved in the rider's favor</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.9</span> Restaurant &amp; Rider — Apr 28 2026</h4>
+        <ul>
+          <li><strong>Restaurant:</strong> fixed account creation error (duplicate key on username)</li>
+          <li><strong>Restaurant:</strong> login now accepts email or username</li>
+          <li><strong>Restaurant:</strong> fixed "select or create a category" error when adding the first menu item</li>
+          <li><strong>Restaurant &amp; Rider:</strong> Lightning Address permanently linked to account — immutable after saving</li>
+          <li><strong>All apps:</strong> Lightning wallet automatically restored on login</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — initial release</h4>
+        <ul>
+          <li>Lightning Address registration to receive payouts (restaurant and rider)</li>
+          <li>Customer can add funds via Lightning invoice</li>
+          <li>Delivery address selection with GPS and Country → State → City cascade</li>
+          <li>Support for 5 languages: 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
+        </ul>
+      </div>
+
+      <!-- ES -->
+      <div class="release-lang" data-for-lang="es">
+        <h4><span class="release-tag">v1.1.0</span> Sistema de Reputación — 28 abr 2026</h4>
+        <ul>
+          <li><strong>Niveles de confianza:</strong> las cuentas comienzan en Nuevo (máx. 5.000 sats/pedido) y suben a Básico → Confiable → Veterano con más pedidos completados</li>
+          <li><strong>Límite por nivel:</strong> Nuevo: 5k · Básico: 50k · Confiable: 500k · Veterano: sin límite</li>
+          <li><strong>Calificación post-entrega:</strong> el cliente puede calificar al restaurante y al repartidor de 1 a 5 estrellas al recibir el pedido</li>
+          <li><strong>Puntuación de reputación:</strong> promedio ponderado de todas las calificaciones; puntuación baja bloquea subir de nivel</li>
+          <li><strong>Sistema de disputas:</strong> el cliente puede abrir una disputa en pedidos entregados; el GPS del repartidor se verifica automáticamente</li>
+          <li><strong>Resolución automática:</strong> si el GPS confirma entrega en el domicilio (≤ 200m), la disputa se cierra automáticamente a favor del repartidor</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.9</span> Restaurante &amp; Repartidor — 28 abr 2026</h4>
+        <ul>
+          <li><strong>Restaurante:</strong> corregido error al crear cuenta (duplicate key en username)</li>
+          <li><strong>Restaurante:</strong> el login ahora acepta e-mail o username</li>
+          <li><strong>Restaurante:</strong> corregido error "selecciona o crea una categoría" al agregar el primer ítem del menú</li>
+          <li><strong>Restaurante &amp; Repartidor:</strong> Lightning Address vinculada permanentemente a la cuenta — inmutable al guardar</li>
+          <li><strong>Todos:</strong> cartera Lightning recuperada automáticamente al iniciar sesión</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — lanzamiento inicial</h4>
+        <ul>
+          <li>Registro de Lightning Address para recibir pagos (restaurante y repartidor)</li>
+          <li>El cliente puede añadir fondos vía invoice Lightning</li>
+          <li>Selección de dirección de entrega con GPS y cascada País → Estado → Ciudad</li>
+          <li>Soporte para 5 idiomas: 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
+        </ul>
+      </div>
+
+      <!-- FR -->
+      <div class="release-lang" data-for-lang="fr">
+        <h4><span class="release-tag">v1.1.0</span> Système de réputation — 28 avr. 2026</h4>
+        <ul>
+          <li><strong>Niveaux de confiance :</strong> les comptes débutent au niveau Nouveau (max. 5 000 sats/commande) et progressent vers Basique → Fiable → Vétéran avec plus de commandes complétées</li>
+          <li><strong>Limite par niveau :</strong> Nouveau : 5k · Basique : 50k · Fiable : 500k · Vétéran : sans limite</li>
+          <li><strong>Évaluation post-livraison :</strong> le client peut évaluer le restaurant et le livreur de 1 à 5 étoiles après réception de la commande</li>
+          <li><strong>Score de réputation :</strong> moyenne pondérée de toutes les évaluations ; un score bas bloque la progression de niveau</li>
+          <li><strong>Système de litiges :</strong> le client peut ouvrir un litige sur les commandes livrées ; le GPS du livreur est vérifié automatiquement</li>
+          <li><strong>Résolution automatique :</strong> si le GPS confirme la livraison à l'adresse (≤ 200m), le litige est résolu automatiquement en faveur du livreur</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.9</span> Restaurant &amp; Livreur — 28 avr. 2026</h4>
+        <ul>
+          <li><strong>Restaurant :</strong> correction de l'erreur à la création de compte (duplicate key sur username)</li>
+          <li><strong>Restaurant :</strong> connexion accepte désormais e-mail ou username</li>
+          <li><strong>Restaurant :</strong> correction de l'erreur « sélectionner ou créer une catégorie » lors de l'ajout du premier article au menu</li>
+          <li><strong>Restaurant &amp; Livreur :</strong> Lightning Address liée définitivement au compte — immuable après enregistrement</li>
+          <li><strong>Toutes les apps :</strong> portefeuille Lightning restauré automatiquement à la connexion</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — lancement initial</h4>
+        <ul>
+          <li>Enregistrement de Lightning Address pour recevoir des paiements (restaurant et livreur)</li>
+          <li>Le client peut ajouter des fonds via invoice Lightning</li>
+          <li>Sélection d'adresse de livraison avec GPS et cascade Pays → État → Ville</li>
+          <li>Support de 5 langues : 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
+        </ul>
+      </div>
+
+      <!-- GN -->
+      <div class="release-lang" data-for-lang="gn">
+        <h4><span class="release-tag">v1.1.0</span> Ñemboheraguapy Apañuãi — 28 abr 2026</h4>
+        <ul>
+          <li><strong>Jeporavo tenda:</strong> cuenta pyahu oñepyrũ Pyahu rehe (máx. 5.000 sats/mba'eporurã) ha ohova Básico → Confiable → Veterano mba'eporurã ojejoko rire</li>
+          <li><strong>Límite mba'eporurã:</strong> Pyahu: 5k · Básico: 50k · Confiable: 500k · Veterano: límite'ỹre</li>
+          <li><strong>Ñembohesa moheñói rire:</strong> tembiporu'a ikatu ombohesa tenda rembi'u ha moheñói 1 guive 5 peve mba'e oñemoinge rire</li>
+          <li><strong>Ñemboheraguapy score:</strong> ñembohesa oĩva mboyvegua; score vai ogueraha tier ojeguerahávape</li>
+          <li><strong>Disputa apañuãi:</strong> tembiporu'a ikatu oheka disputa mba'eporurã oñemoinge rire; moheñói GPS ojehecháva ijehegui</li>
+          <li><strong>Oñemboguata ijehegui:</strong> GPS ohecháva oñemoingéva rendápe (≤ 200m), disputa oñemboguata ijehegui moheñói rehegua</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.9</span> Tenda Rembi'u &amp; Moheñói — 28 abr 2026</h4>
+        <ul>
+          <li><strong>Tenda Rembi'u:</strong> ojejoko vai oñemohenda rire cuenta (duplicate key username-pe)</li>
+          <li><strong>Tenda Rembi'u:</strong> jeike oñemboguata e-mail térã username ndive</li>
+          <li><strong>Tenda Rembi'u:</strong> ojejoko "eiporu térã emoheñói peteĩ categoría" oñemoingove rire peteĩha mba'e cardápio-pe</li>
+          <li><strong>Tenda Rembi'u &amp; Moheñói:</strong> Lightning Address ojoapy cuenta ndive oĩmba — ndojejokóiva oñemboguarda rire</li>
+          <li><strong>Mba'eporurã oĩva:</strong> poti'ĩ Lightning ojejupi ijehegui jeike rire</li>
+        </ul>
+        <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — peteĩha ñemoheñói</h4>
+        <ul>
+          <li>Lightning Address ñemoheñói oñemboheraguapy haguã (tenda rembi'u ha moheñói)</li>
+          <li>Tembiporu'a ikatu omoinge viru invoice Lightning ndive</li>
+          <li>Tenda moheñói eiporavo GPS ndive, Tetã → Departamento → Táva</li>
+          <li>5 ñe'ẽ rehegua: 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
+        </ul>
+      </div>
+
     </div>
   </details>
 
-  <!-- Status dos serviços -->
+  <!-- Status widget -->
   <div class="status-widget">
-    <div class="status-title">Status dos serviços</div>
+    <div class="status-title" id="t-status-title"></div>
     <div class="status-row">
       <div class="status-item">
         <div class="status-dot loading" id="dot-api"></div>
-        <span>API</span>
+        <span id="t-status-api"></span>
       </div>
       <div class="status-item">
         <div class="status-dot loading" id="dot-db"></div>
-        <span>Banco de dados</span>
+        <span id="t-status-db"></span>
       </div>
       <div class="status-item">
         <div class="status-dot loading" id="dot-btcpay"></div>
@@ -490,44 +641,36 @@
     </div>
   </div>
 
-  <!-- Feature pills -->
-  <div class="pills">
-    <span class="pill">⚡ Lightning Network</span>
-    <span class="pill">₿ Somente Bitcoin</span>
-    <span class="pill">🌎 Sem fronteiras</span>
-    <span class="pill">🔒 Sem KYC</span>
-    <span class="pill">🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 idiomas</span>
-  </div>
+  <!-- Pills -->
+  <div class="pills" id="pills-row"></div>
 
-  <div class="scroll-hint">▼ &nbsp; SAIBA MAIS</div>
+  <div class="scroll-hint" id="t-scroll-hint"></div>
 
 </section>
 
 <!-- ── How it works ───────────────────────────────────── -->
 <section style="padding: 80px 24px; max-width: 860px; margin: 0 auto;">
 
-  <h2 style="text-align:center; font-size: clamp(1.4rem,4vw,2rem); font-weight:800; margin-bottom:48px;">
-    Como funciona
-  </h2>
+  <h2 id="t-hiw-title" style="text-align:center; font-size: clamp(1.4rem,4vw,2rem); font-weight:800; margin-bottom:48px;"></h2>
 
   <div style="display:flex; flex-wrap:wrap; gap:24px; justify-content:center;">
 
     <div style="flex:1 1 220px; max-width:260px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-align:center;">
       <div style="font-size:2.4rem; margin-bottom:16px;">📱</div>
-      <h3 style="font-weight:700; margin-bottom:8px;">1. Baixe o app</h3>
-      <p style="color:var(--muted); font-size:0.88rem; line-height:1.5;">Instale o APK do cliente no seu Android. Sem Play Store — direto e simples.</p>
+      <h3 id="t-hiw0-title" style="font-weight:700; margin-bottom:8px;"></h3>
+      <p  id="t-hiw0-body"  style="color:var(--muted); font-size:0.88rem; line-height:1.5;"></p>
     </div>
 
     <div style="flex:1 1 220px; max-width:260px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-align:center;">
       <div style="font-size:2.4rem; margin-bottom:16px;">🍕</div>
-      <h3 style="font-weight:700; margin-bottom:8px;">2. Escolha e peça</h3>
-      <p style="color:var(--muted); font-size:0.88rem; line-height:1.5;">Navegue pelos restaurantes disponíveis na sua área e monte seu pedido.</p>
+      <h3 id="t-hiw1-title" style="font-weight:700; margin-bottom:8px;"></h3>
+      <p  id="t-hiw1-body"  style="color:var(--muted); font-size:0.88rem; line-height:1.5;"></p>
     </div>
 
     <div style="flex:1 1 220px; max-width:260px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-align:center;">
       <div style="font-size:2.4rem; margin-bottom:16px;">⚡</div>
-      <h3 style="font-weight:700; margin-bottom:8px;">3. Pague em sats</h3>
-      <p style="color:var(--muted); font-size:0.88rem; line-height:1.5;">Escaneie o invoice Lightning com sua Wallet of Satoshi ou outra carteira compatível.</p>
+      <h3 id="t-hiw2-title" style="font-weight:700; margin-bottom:8px;"></h3>
+      <p  id="t-hiw2-body"  style="color:var(--muted); font-size:0.88rem; line-height:1.5;"></p>
     </div>
 
   </div>
@@ -540,50 +683,261 @@
     BitFood &copy; 2025 — Open Source &nbsp;·&nbsp;
     <a href="https://github.com/Unknown-brazilian/bitfood-from-zero" target="_blank">GitHub</a>
     &nbsp;·&nbsp;
-    <a href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases" target="_blank">Releases</a>
+    <a href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases" target="_blank" id="t-footer-releases"></a>
   </p>
-  <p>Construído sobre a rede Bitcoin Lightning ⚡</p>
+  <p id="t-footer-built"></p>
 </footer>
 
 <script>
-  // ── Rotating messages ──────────────────────────────────────
-  const msgs = document.querySelectorAll('.msg');
-  let cur = 0;
-  setInterval(() => {
-    msgs[cur].classList.remove('active');
-    cur = (cur + 1) % msgs.length;
-    msgs[cur].classList.add('active');
-  }, 3400);
+// ── Translations ───────────────────────────────────────────────────────────────
+const T = {
+  pt: {
+    htmlLang:      'pt-BR',
+    metaDesc:      'BitFood — O primeiro app de delivery de comida somente Bitcoin Lightning. Peça comida, pague em sats.',
+    badge:         '⚠️ Alpha · Pré-Beta — v1.1.0',
+    alphaLabel:    '⚠️ Fase Alpha:',
+    alphaBody:     ' este app está em desenvolvimento ativo. Funcionalidades podem mudar, bugs são esperados e dados podem ser resetados sem aviso. Use apenas para testes.',
+    msgs:          ['1º App de delivery somente Bitcoin', 'Preferimos Wallet of Satoshi ⚡', 'Trabalhe onde quiser,<br>sem fronteiras'],
+    dlLabel:       ['App do', 'App do', 'App do'],
+    dlName:        ['Cliente', 'Restaurante', 'Entregador'],
+    dlBtn:         '⬇ Baixar APK',
+    releaseSummary:'📋 Notas da versão v1.1.0 ▾',
+    statusTitle:   'Status dos serviços',
+    statusApi:     'API',
+    statusDb:      'Banco de dados',
+    pills:         ['⚡ Lightning Network', '₿ Somente Bitcoin', '🌎 Sem fronteiras', '🔒 Sem KYC', '🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 idiomas'],
+    scrollHint:    '▼ &nbsp; SAIBA MAIS',
+    hiwTitle:      'Como funciona',
+    hiw: [
+      { title: '1. Baixe o app',    body: 'Instale o APK do cliente no seu Android. Sem Play Store — direto e simples.' },
+      { title: '2. Escolha e peça', body: 'Navegue pelos restaurantes disponíveis na sua área e monte seu pedido.' },
+      { title: '3. Pague em sats',  body: 'Escaneie o invoice Lightning com sua Wallet of Satoshi ou outra carteira compatível.' },
+    ],
+    footerBuilt:    'Construído sobre a rede Bitcoin Lightning ⚡',
+    footerReleases: 'Releases',
+  },
+  en: {
+    htmlLang:      'en',
+    metaDesc:      'BitFood — The first Bitcoin Lightning only food delivery app. Order food, pay in sats.',
+    badge:         '⚠️ Alpha · Pre-Beta — v1.1.0',
+    alphaLabel:    '⚠️ Alpha Phase:',
+    alphaBody:     ' this app is in active development. Features may change, bugs are expected and data may be reset without notice. Use for testing only.',
+    msgs:          ['1st Bitcoin Only food delivery app', 'We prefer Wallet of Satoshi ⚡', 'Work everywhere you want,<br>with no borders'],
+    dlLabel:       ['Customer', 'Restaurant', 'Rider'],
+    dlName:        ['App', 'App', 'App'],
+    dlBtn:         '⬇ Download APK',
+    releaseSummary:'📋 Release notes v1.1.0 ▾',
+    statusTitle:   'Service status',
+    statusApi:     'API',
+    statusDb:      'Database',
+    pills:         ['⚡ Lightning Network', '₿ Bitcoin Only', '🌎 No borders', '🔒 No KYC', '🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 languages'],
+    scrollHint:    '▼ &nbsp; LEARN MORE',
+    hiwTitle:      'How it works',
+    hiw: [
+      { title: '1. Download the app', body: 'Install the customer APK on your Android. No Play Store — direct and simple.' },
+      { title: '2. Browse and order', body: 'Browse available restaurants in your area and build your order.' },
+      { title: '3. Pay in sats',      body: 'Scan the Lightning invoice with your Wallet of Satoshi or any compatible wallet.' },
+    ],
+    footerBuilt:    'Built on the Bitcoin Lightning Network ⚡',
+    footerReleases: 'Releases',
+  },
+  es: {
+    htmlLang:      'es',
+    metaDesc:      'BitFood — La primera app de delivery de comida solo Bitcoin Lightning. Pide comida, paga en sats.',
+    badge:         '⚠️ Alpha · Pre-Beta — v1.1.0',
+    alphaLabel:    '⚠️ Fase Alpha:',
+    alphaBody:     ' esta app está en desarrollo activo. Las funcionalidades pueden cambiar, se esperan errores y los datos pueden reiniciarse sin previo aviso. Úsala solo para pruebas.',
+    msgs:          ['Primera app de delivery solo Bitcoin', 'Preferimos Wallet of Satoshi ⚡', 'Trabaja donde quieras,<br>sin fronteras'],
+    dlLabel:       ['App del', 'App del', 'App del'],
+    dlName:        ['Cliente', 'Restaurante', 'Repartidor'],
+    dlBtn:         '⬇ Descargar APK',
+    releaseSummary:'📋 Notas de versión v1.1.0 ▾',
+    statusTitle:   'Estado de los servicios',
+    statusApi:     'API',
+    statusDb:      'Base de datos',
+    pills:         ['⚡ Lightning Network', '₿ Solo Bitcoin', '🌎 Sin fronteras', '🔒 Sin KYC', '🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 idiomas'],
+    scrollHint:    '▼ &nbsp; SABER MÁS',
+    hiwTitle:      'Cómo funciona',
+    hiw: [
+      { title: '1. Descarga la app',    body: 'Instala el APK del cliente en tu Android. Sin Play Store — directo y simple.' },
+      { title: '2. Elige y pide',       body: 'Navega por los restaurantes disponibles en tu área y arma tu pedido.' },
+      { title: '3. Paga en sats',       body: 'Escanea el invoice Lightning con tu Wallet of Satoshi u otra cartera compatible.' },
+    ],
+    footerBuilt:    'Construido sobre la red Bitcoin Lightning ⚡',
+    footerReleases: 'Releases',
+  },
+  fr: {
+    htmlLang:      'fr',
+    metaDesc:      "BitFood — La première app de livraison de nourriture uniquement Bitcoin Lightning. Commandez, payez en sats.",
+    badge:         '⚠️ Alpha · Pré-Bêta — v1.1.0',
+    alphaLabel:    '⚠️ Phase Alpha :',
+    alphaBody:     " cette app est en développement actif. Les fonctionnalités peuvent changer, des bugs sont attendus et les données peuvent être réinitialisées sans préavis. À utiliser uniquement pour les tests.",
+    msgs:          ["1ère app de livraison uniquement Bitcoin", 'Nous préférons Wallet of Satoshi ⚡', 'Travaillez où vous voulez,<br>sans frontières'],
+    dlLabel:       ['App', 'App', 'App'],
+    dlName:        ['Client', 'Restaurant', 'Livreur'],
+    dlBtn:         '⬇ Télécharger APK',
+    releaseSummary:"📋 Notes de version v1.1.0 ▾",
+    statusTitle:   'État des services',
+    statusApi:     'API',
+    statusDb:      'Base de données',
+    pills:         ['⚡ Lightning Network', '₿ Bitcoin uniquement', '🌎 Sans frontières', '🔒 Sans KYC', '🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 langues'],
+    scrollHint:    '▼ &nbsp; EN SAVOIR PLUS',
+    hiwTitle:      'Comment ça marche',
+    hiw: [
+      { title: "1. Téléchargez l'app",       body: "Installez l'APK client sur votre Android. Sans Play Store — direct et simple." },
+      { title: '2. Choisissez et commandez', body: 'Parcourez les restaurants disponibles dans votre zone et composez votre commande.' },
+      { title: '3. Payez en sats',           body: 'Scannez le invoice Lightning avec votre Wallet of Satoshi ou un autre portefeuille compatible.' },
+    ],
+    footerBuilt:    'Construit sur le réseau Bitcoin Lightning ⚡',
+    footerReleases: 'Releases',
+  },
+  gn: {
+    htmlLang:      'gn',
+    metaDesc:      "BitFood — Peteĩ mba'eporurã Bitcoin Lightning rehegua. Ejerure rembi'u, embohero sats ndive.",
+    badge:         '⚠️ Alpha · Pre-Beta — v1.1.0',
+    alphaLabel:    '⚠️ Alpha Mba\'e:',
+    alphaBody:     " ko mba'eporurã oĩ mba'apopy rehe. Mba'eporu ikatu ombosakã, ojehu vai ha mba'e ojejapoha ikatu ojeguejy oñemomarandu'ỹre. Eiporu porubyrã haguã añoite.",
+    msgs:          ["Peteĩ mba'eporurã Bitcoin rehegua", 'Roñe\'ẽ Wallet of Satoshi ndive ⚡', 'Robajéta reikóva rehe,<br>tape\'ỹre'],
+    dlLabel:       ["Tembiporu'a", "Tenda Rembi'u", 'Moheñói'],
+    dlName:        ['Rehegua', 'Rehegua', 'Rehegua'],
+    dlBtn:         "⬇ Emono'ã APK",
+    releaseSummary:"📋 Mba'eporu pyahu v1.1.0 ▾",
+    statusTitle:   "Mba'apohára oĩporãha",
+    statusApi:     'API',
+    statusDb:      "Mba'ekuaarenda",
+    pills:         ['⚡ Lightning Network', '₿ Bitcoin añoite', '🌎 Tape\'ỹre', '🔒 KYC\'ỹre', '🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾 5 ñe\'ẽ'],
+    scrollHint:    '▼ &nbsp; EHECHA HETAVE',
+    hiwTitle:      "Mba'éichapa oĩ",
+    hiw: [
+      { title: "1. Emono'ã mba'eporurã", body: "Eiporu APK tembiporu'a rehe ne Android-pe. Play Store'ỹre — oĩmba ha oĩporã." },
+      { title: "2. Eiporu ha ejerure",    body: "Eheka tenda rembi'u oĩva ne roga rapykuépe ha embojuaju ne mba'eporurã." },
+      { title: '3. Embohero sats ndive',  body: "Emyakã Lightning invoice ne Wallet of Satoshi térã ambue poti'ĩ ndive." },
+    ],
+    footerBuilt:    'Ojejapova Bitcoin Lightning ñandutípe ⚡',
+    footerReleases: 'Releases',
+  },
+};
 
-  // ── Status widget ──────────────────────────────────────────
-  const STATUS_URL = 'https://api.bitfood.app/health';
-  const POLL_MS    = 30000;
+// ── Apply translations ─────────────────────────────────────────────────────────
+function applyLang(lang) {
+  const t = T[lang] || T.pt;
 
-  function setDot(id, state) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.className = 'status-dot ' + state;
+  document.documentElement.lang = t.htmlLang;
+  document.querySelector('meta[name="description"]').content = t.metaDesc;
+
+  // Badge & alpha warning
+  document.getElementById('t-badge').textContent        = t.badge;
+  document.getElementById('t-alpha-label').textContent  = t.alphaLabel;
+  document.getElementById('t-alpha-body').textContent   = t.alphaBody;
+
+  // Rotating messages
+  for (let i = 0; i < 3; i++) {
+    const el = document.getElementById('msg-' + i);
+    if (el) el.innerHTML = t.msgs[i] || '';
   }
 
-  async function fetchStatus() {
-    try {
-      const res  = await fetch(STATUS_URL, { cache: 'no-store' });
-      const data = await res.json();
-      const s    = data.services || {};
-
-      setDot('dot-api',    s.api      ? 'ok' : 'err');
-      setDot('dot-db',     s.database ? 'ok' : 'err');
-      setDot('dot-btcpay', s.btcpay   ? 'ok' : 'err');
-
-    } catch (_) {
-      setDot('dot-api',    'err');
-      setDot('dot-db',     'err');
-      setDot('dot-btcpay', 'err');
-    }
+  // Download cards
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('t-dl-label-' + i).textContent = t.dlLabel[i] || '';
+    document.getElementById('t-dl-name-'  + i).textContent = t.dlName[i]  || '';
+    document.getElementById('t-dl-btn-'   + i).textContent = t.dlBtn;
   }
 
-  fetchStatus();
-  setInterval(fetchStatus, POLL_MS);
+  // Release notes summary
+  document.getElementById('t-release-summary').textContent = t.releaseSummary;
+
+  // Release notes body: show only the matching lang block
+  document.querySelectorAll('.release-lang').forEach(el => {
+    el.style.display = el.dataset.forLang === lang ? '' : 'none';
+  });
+
+  // Status widget
+  document.getElementById('t-status-title').textContent = t.statusTitle;
+  document.getElementById('t-status-api').textContent   = t.statusApi;
+  document.getElementById('t-status-db').textContent    = t.statusDb;
+
+  // Pills
+  const pillsRow = document.getElementById('pills-row');
+  pillsRow.innerHTML = t.pills.map(p => `<span class="pill">${p}</span>`).join('');
+
+  // Scroll hint
+  document.getElementById('t-scroll-hint').innerHTML = t.scrollHint;
+
+  // How it works
+  document.getElementById('t-hiw-title').textContent = t.hiwTitle;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('t-hiw' + i + '-title').textContent = t.hiw[i].title;
+    document.getElementById('t-hiw' + i + '-body').textContent  = t.hiw[i].body;
+  }
+
+  // Footer
+  document.getElementById('t-footer-built').textContent    = t.footerBuilt;
+  document.getElementById('t-footer-releases').textContent = t.footerReleases;
+
+  // Lang button active state
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  localStorage.setItem('bitfood-lang', lang);
+}
+
+// ── Language detection ────────────────────────────────────────────────────────
+function detectLang() {
+  const saved = localStorage.getItem('bitfood-lang');
+  if (saved && T[saved]) return saved;
+
+  const b = (navigator.language || navigator.userLanguage || '').toLowerCase();
+  if (b.startsWith('pt'))  return 'pt';
+  if (b.startsWith('fr'))  return 'fr';
+  if (b === 'gn' || b.startsWith('gn-')) return 'gn';
+  if (b.startsWith('es'))  return 'es';
+  if (b.startsWith('en'))  return 'en';
+  return 'pt';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+});
+
+applyLang(detectLang());
+
+// ── Rotating messages ─────────────────────────────────────────────────────────
+const msgs = document.querySelectorAll('.msg');
+let cur = 0;
+setInterval(() => {
+  msgs[cur].classList.remove('active');
+  cur = (cur + 1) % msgs.length;
+  msgs[cur].classList.add('active');
+}, 3400);
+
+// ── Status widget ─────────────────────────────────────────────────────────────
+const STATUS_URL = 'https://api.bitfood.app/health';
+const POLL_MS    = 30000;
+
+function setDot(id, state) {
+  const el = document.getElementById(id);
+  if (el) el.className = 'status-dot ' + state;
+}
+
+async function fetchStatus() {
+  try {
+    const res  = await fetch(STATUS_URL, { cache: 'no-store' });
+    const data = await res.json();
+    const s    = data.services || {};
+    setDot('dot-api',    s.api      ? 'ok' : 'err');
+    setDot('dot-db',     s.database ? 'ok' : 'err');
+    setDot('dot-btcpay', s.btcpay   ? 'ok' : 'err');
+  } catch (_) {
+    setDot('dot-api',    'err');
+    setDot('dot-db',     'err');
+    setDot('dot-btcpay', 'err');
+  }
+}
+
+fetchStatus();
+setInterval(fetchStatus, POLL_MS);
 </script>
 
 </body>
