@@ -15,11 +15,12 @@ class ProfileScreen extends StatelessWidget {
       options: QueryOptions(document: gql(meRestaurantQuery), fetchPolicy: FetchPolicy.cacheAndNetwork),
       builder: (result, {fetchMore, refetch}) {
         final r = result.data?['myRestaurant'];
+        final restaurantRefetch = refetch;
         return Query(
           options: QueryOptions(document: gql(meUserQuery), fetchPolicy: FetchPolicy.cacheAndNetwork),
-          builder: (meResult, {fetchMore, refetch: refetchMe}) {
+          builder: (meResult, {fetchMore, refetch}) {
             final me = meResult.data?['me'];
-            return _ProfileBody(restaurant: r, me: me, refetch: refetch, onLogout: onLogout);
+            return _ProfileBody(restaurant: r, me: me, refetch: restaurantRefetch, onLogout: onLogout);
           },
         );
       },
