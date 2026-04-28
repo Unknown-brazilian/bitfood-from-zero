@@ -309,9 +309,9 @@
       padding: 18px 24px;
       margin-bottom: 48px;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       align-items: center;
-      gap: 12px 24px;
+      gap: 14px;
     }
 
     .status-title {
@@ -320,8 +320,13 @@
       letter-spacing: 1px;
       text-transform: uppercase;
       color: var(--muted);
-      width: 100%;
-      margin-bottom: 2px;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 28px;
     }
 
     .status-item {
@@ -341,17 +346,11 @@
       transition: background 0.4s;
     }
 
-    .status-dot.ok  { background: #4CAF50; box-shadow: 0 0 6px #4CAF5088; }
-    .status-dot.err { background: #F44336; box-shadow: 0 0 6px #F4433688; }
+    .status-dot.ok      { background: #4CAF50; box-shadow: 0 0 6px #4CAF5088; }
+    .status-dot.err     { background: #F44336; box-shadow: 0 0 6px #F4433688; }
     .status-dot.loading { background: #888; animation: blink 1.2s ease-in-out infinite; }
 
     @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
-
-    .status-updated {
-      margin-left: auto;
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.2);
-    }
 
     /* ── Scroll indicator ───────────────────────────── */
     .scroll-hint {
@@ -473,21 +472,22 @@
   </details>
 
   <!-- Status dos serviços -->
-  <div class="status-widget" id="statusWidget">
+  <div class="status-widget">
     <div class="status-title">Status dos serviços</div>
-    <div class="status-item">
-      <div class="status-dot loading" id="dot-api"></div>
-      <span>API</span>
+    <div class="status-row">
+      <div class="status-item">
+        <div class="status-dot loading" id="dot-api"></div>
+        <span>API</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot loading" id="dot-db"></div>
+        <span>Banco de dados</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot loading" id="dot-btcpay"></div>
+        <span>BTCPay</span>
+      </div>
     </div>
-    <div class="status-item">
-      <div class="status-dot loading" id="dot-db"></div>
-      <span>Banco de dados</span>
-    </div>
-    <div class="status-item">
-      <div class="status-dot loading" id="dot-btcpay"></div>
-      <span>BTCPay</span>
-    </div>
-    <div class="status-updated" id="statusUpdated">verificando…</div>
   </div>
 
   <!-- Feature pills -->
@@ -575,16 +575,10 @@
       setDot('dot-db',     s.database ? 'ok' : 'err');
       setDot('dot-btcpay', s.btcpay   ? 'ok' : 'err');
 
-      const now = new Date();
-      document.getElementById('statusUpdated').textContent =
-        'atualizado ' + now.getHours().toString().padStart(2,'0') + ':' +
-        now.getMinutes().toString().padStart(2,'0') + ':' +
-        now.getSeconds().toString().padStart(2,'0');
     } catch (_) {
       setDot('dot-api',    'err');
       setDot('dot-db',     'err');
       setDot('dot-btcpay', 'err');
-      document.getElementById('statusUpdated').textContent = 'sem resposta';
     }
   }
 
