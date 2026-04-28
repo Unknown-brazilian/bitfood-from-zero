@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
+import '../widgets/tier_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback onLogout;
@@ -184,6 +185,15 @@ class _ProfileBodyState extends State<_ProfileBody> {
                 const Text('Entregador BitFood', style: TextStyle(fontSize: 13, color: AppColors.textGrey)),
               ],
             ),
+          ),
+          const SizedBox(height: 12),
+
+          // Tier card
+          TierCard(
+            tier: widget.me?['tier'] as String? ?? 'NEW',
+            score: (widget.me?['reputationScore'] as num?)?.toDouble() ?? 5.0,
+            completedOrders: (widget.me?['completedOrders'] as num?)?.toInt() ?? 0,
+            escrowSats: (widget.me?['escrowSats'] as num?)?.toInt(),
           ),
           const SizedBox(height: 20),
 

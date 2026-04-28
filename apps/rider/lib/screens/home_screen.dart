@@ -11,6 +11,7 @@ import 'earnings_screen.dart';
 import 'heatmap_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/sats_chip.dart';
+import '../widgets/status_banner.dart';
 import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -167,14 +168,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _tab,
+      body: Column(
         children: [
-          const AvailableOrdersScreen(),
-          const ActiveOrderScreen(),
-          const HeatMapScreen(),
-          const EarningsScreen(),
-          ProfileScreen(onLogout: widget.onLogout),
+          const StatusBanner(),
+          Expanded(
+            child: IndexedStack(
+              index: _tab,
+              children: [
+                const AvailableOrdersScreen(),
+                const ActiveOrderScreen(),
+                const HeatMapScreen(),
+                const EarningsScreen(),
+                ProfileScreen(onLogout: widget.onLogout),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

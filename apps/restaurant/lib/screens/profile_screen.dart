@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
+import '../widgets/tier_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback onLogout;
@@ -14,7 +15,13 @@ class ProfileScreen extends StatelessWidget {
       options: QueryOptions(document: gql(meRestaurantQuery), fetchPolicy: FetchPolicy.cacheAndNetwork),
       builder: (result, {fetchMore, refetch}) {
         final r = result.data?['myRestaurant'];
-        return _ProfileBody(restaurant: r, refetch: refetch, onLogout: onLogout);
+        return Query(
+          options: QueryOptions(document: gql(meUserQuery), fetchPolicy: FetchPolicy.cacheAndNetwork),
+          builder: (meResult, {fetchMore, refetch: refetchMe}) {
+            final me = meResult.data?['me'];
+            return _ProfileBody(restaurant: r, me: me, refetch: refetch, onLogout: onLogout);
+          },
+        );
       },
     );
   }
@@ -22,9 +29,10 @@ class ProfileScreen extends StatelessWidget {
 
 class _ProfileBody extends StatefulWidget {
   final Map<String, dynamic>? restaurant;
+  final Map<String, dynamic>? me;
   final Refetch? refetch;
   final VoidCallback onLogout;
-  const _ProfileBody({this.restaurant, this.refetch, required this.onLogout});
+  const _ProfileBody({this.restaurant, this.me, this.refetch, required this.onLogout});
 
   @override
   State<_ProfileBody> createState() => _ProfileBodyState();
@@ -169,6 +177,13 @@ class _ProfileBodyState extends State<_ProfileBody> {
                 const Text('Restaurante BitFood', style: TextStyle(fontSize: 13, color: AppColors.textGrey)),
               ],
             ),
+          ),
+          const SizedBox(height: 12),
+
+          TierCard(
+            tier: widget.me?['tier'] as String? ?? 'NEW',
+            score: (widget.me?['reputationScore'] as num?)?.toDouble() ?? 5.0,
+            completedOrders: (widget.me?['completedOrders'] as num?)?.toInt() ?? 0,
           ),
           const SizedBox(height: 20),
 

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
+import '../../services/queries.dart';
+import '../../widgets/tier_card.dart';
 import '../auth/login_screen.dart';
 import '../order/orders_screen.dart';
 import 'addresses_screen.dart';
@@ -88,6 +91,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Query(
+      options: QueryOptions(
+        document: gql(meQuery),
+        fetchPolicy: FetchPolicy.cacheAndNetwork,
+      ),
+      builder: (result, {fetchMore, refetch}) {
+        final me = result.data?['me'];
+        return _buildBody(context, me);
+      },
+    );
+  }
+
+  Widget _buildBody(BuildContext context, Map<String, dynamic>? me) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Meu Perfil')),
@@ -122,6 +138,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 12),
+
+          TierCard(
+            tier: me?['tier'] as String? ?? 'NEW',
+            score: (me?['reputationScore'] as num?)?.toDouble() ?? 5.0,
+            completedOrders: (me?['completedOrders'] as num?)?.toInt() ?? 0,
           ),
           const SizedBox(height: 16),
 

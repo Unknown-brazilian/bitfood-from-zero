@@ -11,8 +11,8 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
 
-const _apiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://10.0.2.2:4000/graphql');
-const _wsUrl = String.fromEnvironment('WS_URL', defaultValue: 'ws://10.0.2.2:4000/graphql');
+const _apiUrl = String.fromEnvironment('API_URL', defaultValue: 'https://api.bitfood.app/graphql');
+const _wsUrl = String.fromEnvironment('WS_URL', defaultValue: 'wss://api.bitfood.app/graphql');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,9 +74,13 @@ class _AppRootState extends State<_AppRoot> {
   }
 
   GraphQLClient _buildClient(String? token) {
-    final http = HttpLink(_apiUrl);
+    final http = HttpLink(
+      _apiUrl,
+      defaultHeaders: const {'Accept': 'application/json'},
+    );
     final ws = WebSocketLink(_wsUrl, config: SocketClientConfig(
       autoReconnect: true,
+      inactivityTimeout: const Duration(seconds: 60),
       initialPayload: token != null ? {'authorization': 'Bearer $token'} : null,
     ));
     final auth = AuthLink(getToken: () async {

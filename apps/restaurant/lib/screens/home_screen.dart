@@ -8,6 +8,7 @@ import 'earnings_screen.dart';
 import 'menu_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/sats_chip.dart';
+import '../widgets/status_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -100,13 +101,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          body: IndexedStack(
-            index: _tab,
+          body: Column(
             children: [
-              const OrdersScreen(),
-              const MenuScreen(),
-              const EarningsScreen(),
-              ProfileScreen(onLogout: widget.onLogout),
+              const StatusBanner(),
+              Expanded(
+                child: IndexedStack(
+                  index: _tab,
+                  children: [
+                    const OrdersScreen(),
+                    const MenuScreen(),
+                    const EarningsScreen(),
+                    ProfileScreen(onLogout: widget.onLogout),
+                  ],
+                ),
+              ),
             ],
           ),
           bottomNavigationBar: BottomNavigationBar(

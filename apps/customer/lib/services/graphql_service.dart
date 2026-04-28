@@ -5,22 +5,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 class GraphQLService {
   static const String _apiUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.0.2.2:4000/graphql',
+    defaultValue: 'https://api.bitfood.app/graphql',
   );
   static const String _wsUrl = String.fromEnvironment(
     'WS_URL',
-    defaultValue: 'ws://10.0.2.2:4000/graphql',
+    defaultValue: 'wss://api.bitfood.app/graphql',
   );
 
   static late ValueNotifier<GraphQLClient> client;
 
   static GraphQLClient _buildClient([String? token]) {
-    final httpLink = HttpLink(_apiUrl);
+    final httpLink = HttpLink(
+      _apiUrl,
+      defaultHeaders: const {'Accept': 'application/json'},
+    );
     final wsLink = WebSocketLink(
       _wsUrl,
       config: SocketClientConfig(
         autoReconnect: true,
-        inactivityTimeout: const Duration(seconds: 30),
+        inactivityTimeout: const Duration(seconds: 60),
         initialPayload: token != null ? {'authorization': 'Bearer $token'} : null,
       ),
     );

@@ -95,6 +95,7 @@ const meQuery = r'''
   query Me {
     me {
       _id name phone vehicleType nameLocked available lightningAddress lightningAddressLocked zone { _id }
+      tier reputationScore completedOrders totalOrders escrowSats
     }
   }
 ''';

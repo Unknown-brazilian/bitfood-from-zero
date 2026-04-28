@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
+import '../widgets/error_box.dart';
 
 class LoginScreen extends StatefulWidget {
   final ValueChanged<String> onLogin;
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure    = true;
   bool _isRegister = false;
   String _vehicleType = 'MOTORCYCLE';
-  String? _error;
+  Object? _error;
 
   @override
   void dispose() {
@@ -89,11 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
         widget.onLogin(data['token']);
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString()
-            .replaceAll(RegExp(r'OperationException.*?:\s?'), '')
-            .replaceAll(RegExp(r'GraphQLError\(.*?\):\s?'), '');
-      });
+      setState(() => _error = e);
     } finally {
       setState(() => _loading = false);
     }
@@ -150,23 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 28),
 
                 if (_error != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF0F0),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColors.primary, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.primary, fontSize: 13))),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  ErrorBox(error: _error!, onRetry: _submit),
+                  const SizedBox(height: 8),
                 ],
 
                 if (_isRegister) ...[

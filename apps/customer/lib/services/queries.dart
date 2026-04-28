@@ -130,6 +130,7 @@ const String meQuery = r'''
   query Me {
     me {
       _id name email phone lightningAddress balanceSats
+      tier reputationScore completedOrders totalOrders
       addresses {
         _id label address street number complement neighborhood postalCode city state country details isDefault
         location { lat lng }

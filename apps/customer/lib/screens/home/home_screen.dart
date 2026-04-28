@@ -7,6 +7,7 @@ import '../../services/queries.dart';
 import '../../widgets/restaurant_card.dart';
 import '../../widgets/search_bar_widget.dart';
 import '../../widgets/sats_chip.dart';
+import '../../widgets/status_banner.dart';
 import '../restaurant/restaurant_screen.dart';
 import '../cart/cart_screen.dart';
 import '../order/orders_screen.dart';
@@ -35,12 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: IndexedStack(
-        index: _tab,
+      body: Column(
         children: [
-          _buildRestaurantsTab(cartModel),
-          const OrdersScreen(),
-          const ProfileScreen(),
+          const StatusBanner(),
+          Expanded(
+            child: IndexedStack(
+              index: _tab,
+              children: [
+                _buildRestaurantsTab(cartModel),
+                const OrdersScreen(),
+                const ProfileScreen(),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: Container(

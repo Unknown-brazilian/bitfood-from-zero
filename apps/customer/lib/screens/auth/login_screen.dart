@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/queries.dart';
+import '../../widgets/error_box.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -19,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
-  String? _error;
+  Object? _error;
   bool _isRegister = false;
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -60,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('user_id', data['userId']);
       widget.onLoginSuccess();
     } catch (e) {
-      setState(() { _error = e.toString().replaceAll(RegExp(r'GraphQLError\(.*?\):\s?'), ''); });
+      setState(() => _error = e);
     } finally {
       setState(() { _loading = false; });
     }
@@ -113,16 +114,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
 
                       if (_error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF0F0),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-                          ),
-                          child: Text(_error!, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
-                        ),
-                        const SizedBox(height: 16),
+                        ErrorBox(error: _error!, onRetry: _submit),
+                        const SizedBox(height: 8),
                       ],
 
                       if (_isRegister) ...[
