@@ -373,6 +373,117 @@
 
     @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
 
+    /* ── Reputation section ─────────────────────────── */
+    .rep-section {
+      padding: 80px 24px 64px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .rep-section-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .rep-section-header h2 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 800;
+    }
+
+    .rep-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      max-width: 620px;
+      margin: 0 auto 52px;
+    }
+
+    .rep-actors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 56px;
+    }
+
+    .rep-actor {
+      flex: 1 1 220px;
+      max-width: 270px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 20px;
+      padding: 28px 22px 24px;
+      text-align: center;
+    }
+
+    .rep-actor-icon { font-size: 2.4rem; margin-bottom: 12px; }
+    .rep-actor-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; }
+    .rep-actor-body  { color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
+
+    .rep-tier-heading {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      letter-spacing: 1.5px;
+    }
+
+    .rep-tiers {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .rep-tier {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 14px;
+      padding: 14px 20px;
+    }
+
+    .rep-tier-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 120px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .rep-tier-icon { font-size: 1.3rem; }
+
+    .rep-tier-cond {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .rep-tier-limit {
+      font-weight: 800;
+      font-size: 0.88rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 500px) {
+      .rep-tier { flex-wrap: wrap; gap: 8px; }
+      .rep-tier-badge { min-width: unset; }
+      .rep-tier-limit { width: 100%; text-align: left; padding-left: 2px; }
+    }
+
     /* ── Scroll indicator ───────────────────────────── */
     .scroll-hint {
       position: absolute;
@@ -677,6 +788,19 @@
 
 </section>
 
+<!-- ── Reputation / Game Theory ──────────────────────── -->
+<section class="rep-section">
+  <div class="rep-section-header">
+    <h2 id="rep-section-title"></h2>
+  </div>
+  <p class="rep-subtitle" id="rep-subtitle"></p>
+
+  <div class="rep-actors" id="rep-actors-grid"></div>
+
+  <div class="rep-tier-heading" id="rep-tier-heading"></div>
+  <div class="rep-tiers" id="rep-tiers-grid"></div>
+</section>
+
 <!-- ── Footer ─────────────────────────────────────────── -->
 <footer>
   <p style="margin-bottom:8px;">
@@ -715,6 +839,20 @@ const T = {
     ],
     footerBuilt:    'Construído sobre a rede Bitcoin Lightning ⚡',
     footerReleases: 'Releases',
+    repTitle:       'Por que ser honesto sempre vale a pena',
+    repSubtitle:    'O BitFood aplica teoria dos jogos para alinhar os interesses das três partes. Comportamento honesto é a estratégia dominante — não compensa trair, para ninguém.',
+    repActors: [
+      { icon: '🛒', title: 'Para o cliente',      body: 'Seus sats ficam bloqueados em escrow até a entrega ser confirmada. Seu limite de pedido cresce a cada entrega concluída. Criar conta nova te volta ao nível Novo — golpear pequeno não compensa.' },
+      { icon: '🍽️', title: 'Para o restaurante', body: 'Score público visível para todos os clientes. Nota baixa empurra você para baixo no ranking de busca. Encantar o cliente é sempre o melhor negócio.' },
+      { icon: '🏍️', title: 'Para o entregador',  body: 'Seu GPS é registrado durante toda a entrega. Se o GPS confirma que você chegou no endereço, disputas falsas são encerradas automaticamente em seu favor.' },
+    ],
+    repTierHeading: 'Tiers de confiança',
+    repTiers: [
+      { icon: '🆕', name: 'Novo',      cond: '0+ pedidos',   score: '—',     limit: '5.000 sats' },
+      { icon: '✅', name: 'Básico',    cond: '5+ pedidos',   score: '≥ 3.0★', limit: '50.000 sats' },
+      { icon: '⭐', name: 'Confiável', cond: '20+ pedidos',  score: '≥ 4.0★', limit: '500.000 sats' },
+      { icon: '🏆', name: 'Veterano',  cond: '100+ pedidos', score: '≥ 4.5★', limit: 'Sem limite' },
+    ],
   },
   en: {
     htmlLang:      'en',
@@ -740,6 +878,20 @@ const T = {
     ],
     footerBuilt:    'Built on the Bitcoin Lightning Network ⚡',
     footerReleases: 'Releases',
+    repTitle:       'Why being honest always pays off',
+    repSubtitle:    'BitFood applies game theory to align the interests of all three parties. Honest behavior is the dominant strategy — cheating is never worth it, for anyone.',
+    repActors: [
+      { icon: '🛒', title: 'For customers',    body: 'Your sats are locked in escrow until delivery is confirmed. Your order limit grows with every completed delivery. Creating a new account resets you to New tier — small scams never pay off.' },
+      { icon: '🍽️', title: 'For restaurants', body: 'Your public score is visible to every customer. A low rating pushes you down in search results. Delighting customers is always the best business strategy.' },
+      { icon: '🏍️', title: 'For riders',      body: 'Your GPS is recorded throughout the delivery. If GPS confirms you reached the address, false disputes are automatically resolved in your favor.' },
+    ],
+    repTierHeading: 'Trust tiers',
+    repTiers: [
+      { icon: '🆕', name: 'New',     cond: '0+ orders',   score: '—',     limit: '5,000 sats' },
+      { icon: '✅', name: 'Basic',   cond: '5+ orders',   score: '≥ 3.0★', limit: '50,000 sats' },
+      { icon: '⭐', name: 'Trusted', cond: '20+ orders',  score: '≥ 4.0★', limit: '500,000 sats' },
+      { icon: '🏆', name: 'Veteran', cond: '100+ orders', score: '≥ 4.5★', limit: 'No limit' },
+    ],
   },
   es: {
     htmlLang:      'es',
@@ -765,6 +917,20 @@ const T = {
     ],
     footerBuilt:    'Construido sobre la red Bitcoin Lightning ⚡',
     footerReleases: 'Releases',
+    repTitle:       '¿Por qué ser honesto siempre vale la pena?',
+    repSubtitle:    'BitFood aplica teoría de juegos para alinear los intereses de las tres partes. El comportamiento honesto es la estrategia dominante — el fraude nunca vale la pena, para nadie.',
+    repActors: [
+      { icon: '🛒', title: 'Para el cliente',      body: 'Tus sats quedan bloqueados en escrow hasta confirmar la entrega. Tu límite de pedido crece con cada entrega completada. Crear una cuenta nueva te regresa al nivel Nuevo — el fraude pequeño nunca conviene.' },
+      { icon: '🍽️', title: 'Para el restaurante', body: 'Tu puntuación pública es visible para todos los clientes. Una mala nota te baja en el ranking de búsqueda. Satisfacer al cliente es siempre el mejor negocio.' },
+      { icon: '🏍️', title: 'Para el repartidor',  body: 'Tu GPS se registra durante toda la entrega. Si el GPS confirma que llegaste al domicilio, las disputas falsas se resuelven automáticamente a tu favor.' },
+    ],
+    repTierHeading: 'Niveles de confianza',
+    repTiers: [
+      { icon: '🆕', name: 'Nuevo',     cond: '0+ pedidos',   score: '—',     limit: '5.000 sats' },
+      { icon: '✅', name: 'Básico',    cond: '5+ pedidos',   score: '≥ 3.0★', limit: '50.000 sats' },
+      { icon: '⭐', name: 'Confiable', cond: '20+ pedidos',  score: '≥ 4.0★', limit: '500.000 sats' },
+      { icon: '🏆', name: 'Veterano',  cond: '100+ pedidos', score: '≥ 4.5★', limit: 'Sin límite' },
+    ],
   },
   fr: {
     htmlLang:      'fr',
@@ -790,6 +956,20 @@ const T = {
     ],
     footerBuilt:    'Construit sur le réseau Bitcoin Lightning ⚡',
     footerReleases: 'Releases',
+    repTitle:       'Pourquoi être honnête paie toujours',
+    repSubtitle:    "BitFood applique la théorie des jeux pour aligner les intérêts des trois parties. Le comportement honnête est la stratégie dominante — tricher ne vaut jamais la peine, pour personne.",
+    repActors: [
+      { icon: '🛒', title: 'Pour les clients',     body: "Vos sats sont bloqués en escrow jusqu'à la confirmation de la livraison. Votre limite de commande grandit à chaque livraison réussie. Créer un nouveau compte vous remet au niveau Nouveau — la fraude ne paie jamais." },
+      { icon: '🍽️', title: 'Pour les restaurants', body: "Votre score public est visible de tous les clients. Une mauvaise note vous fait descendre dans les résultats. Satisfaire les clients est toujours la meilleure stratégie commerciale." },
+      { icon: '🏍️', title: 'Pour les livreurs',    body: "Votre GPS est enregistré pendant toute la livraison. Si le GPS confirme votre arrivée à l'adresse, les litiges abusifs sont résolus automatiquement en votre faveur." },
+    ],
+    repTierHeading: 'Niveaux de confiance',
+    repTiers: [
+      { icon: '🆕', name: 'Nouveau', cond: '0+ commandes',   score: '—',     limit: '5 000 sats' },
+      { icon: '✅', name: 'Basique', cond: '5+ commandes',   score: '≥ 3.0★', limit: '50 000 sats' },
+      { icon: '⭐', name: 'Fiable',  cond: '20+ commandes',  score: '≥ 4.0★', limit: '500 000 sats' },
+      { icon: '🏆', name: 'Vétéran', cond: '100+ commandes', score: '≥ 4.5★', limit: 'Sans limite' },
+    ],
   },
   gn: {
     htmlLang:      'gn',
@@ -815,6 +995,20 @@ const T = {
     ],
     footerBuilt:    'Ojejapova Bitcoin Lightning ñandutípe ⚡',
     footerReleases: 'Releases',
+    repTitle:       "Mba'érepa ñemoñe'ẽ porã oĩporãva",
+    repSubtitle:    "BitFood oiporu ñemboheraguapy apañuãi omoĩporã haguã oñemboheko oĩva mba'e. Ñemoñe'ẽ porã ha'e mba'eporu porãvéva — mba'e vai ojehu'ỹre ojekuaáva.",
+    repActors: [
+      { icon: '🛒', title: "Tembiporu'a rehegua",   body: "Ne sats oĩ escrow-pe moheñói rire. Ne límite mba'eporurã osẽ hetave mba'eporurã ojehu rire. Cuenta pyahu emoheñói rire, Pyahu tierpe ojevy — mba'e vai nda'ipóri." },
+      { icon: '🍽️', title: "Tenda Rembi'u rehegua", body: "Ne score ojehechakuaa tembiporu'a oĩva. Score vai ogueroike ne roga yvate rehe. Tembiporu'a omopotĩ ha'e mba'eporu porãvéva." },
+      { icon: '🏍️', title: "Moheñói rehegua",        body: "Ne GPS oñehekáva moheñói rire. GPS ojehecháramo ereñyrõ rendápe, disputa vai oñemboguata ijehegui ne rekápe." },
+    ],
+    repTierHeading: 'Jeporavo tenda',
+    repTiers: [
+      { icon: '🆕', name: "Pyahu",    cond: "0+ mba'eporurã",   score: '—',     limit: '5.000 sats' },
+      { icon: '✅', name: 'Básico',   cond: "5+ mba'eporurã",   score: '≥ 3.0★', limit: '50.000 sats' },
+      { icon: '⭐', name: 'Confiable', cond: "20+ mba'eporurã",  score: '≥ 4.0★', limit: '500.000 sats' },
+      { icon: '🏆', name: 'Veterano', cond: "100+ mba'eporurã",  score: '≥ 4.5★', limit: "Límite'ỹre" },
+    ],
   },
 };
 
@@ -869,6 +1063,34 @@ function applyLang(lang) {
     document.getElementById('t-hiw' + i + '-title').textContent = t.hiw[i].title;
     document.getElementById('t-hiw' + i + '-body').textContent  = t.hiw[i].body;
   }
+
+  // Reputation section
+  document.getElementById('rep-section-title').textContent = t.repTitle;
+  document.getElementById('rep-subtitle').textContent      = t.repSubtitle;
+  document.getElementById('rep-tier-heading').textContent  = t.repTierHeading;
+
+  const tierColors = ['var(--muted)', 'var(--white)', 'var(--orange)', '#FFD700'];
+  document.getElementById('rep-actors-grid').innerHTML = t.repActors.map(a => `
+    <div class="rep-actor">
+      <div class="rep-actor-icon">${a.icon}</div>
+      <h3 class="rep-actor-title">${a.title}</h3>
+      <p class="rep-actor-body">${a.body}</p>
+    </div>
+  `).join('');
+
+  document.getElementById('rep-tiers-grid').innerHTML = t.repTiers.map((tier, i) => `
+    <div class="rep-tier">
+      <div class="rep-tier-badge" style="color:${tierColors[i]}">
+        <span class="rep-tier-icon">${tier.icon}</span>
+        <span>${tier.name}</span>
+      </div>
+      <div class="rep-tier-cond">
+        <span>${tier.cond}</span>
+        <span>${tier.score}</span>
+      </div>
+      <div class="rep-tier-limit" style="color:${tierColors[i]}">${tier.limit}</div>
+    </div>
+  `).join('');
 
   // Footer
   document.getElementById('t-footer-built').textContent    = t.footerBuilt;
