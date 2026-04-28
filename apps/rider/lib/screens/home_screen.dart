@@ -13,6 +13,7 @@ import 'profile_screen.dart';
 import '../widgets/sats_chip.dart';
 import '../widgets/status_banner.dart';
 import '../services/notification_service.dart';
+import '../services/update_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -34,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _init();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkAndShow(context);
+    });
   }
 
   @override

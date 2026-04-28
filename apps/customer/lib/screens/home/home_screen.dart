@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/cart_model.dart';
 import '../../services/queries.dart';
+import '../../services/update_service.dart';
 import '../../widgets/restaurant_card.dart';
 import '../../widgets/search_bar_widget.dart';
 import '../../widgets/sats_chip.dart';
@@ -23,6 +24,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
   String _search = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkAndShow(context);
+    });
+  }
 
   final List<String> _cuisines = [
     'Todos', 'Pizza', 'Hambúrguer', 'Japonesa', 'Brasileira',

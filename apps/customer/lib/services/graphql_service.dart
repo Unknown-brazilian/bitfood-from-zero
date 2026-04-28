@@ -3,14 +3,13 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GraphQLService {
-  static const String _apiUrl = String.fromEnvironment(
+  static const String _baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'https://api.bitfood.app/graphql',
+    defaultValue: 'https://api.bitfood.app',
   );
-  static const String _wsUrl = String.fromEnvironment(
-    'WS_URL',
-    defaultValue: 'wss://api.bitfood.app/graphql',
-  );
+  static String get baseUrl => _baseUrl.replaceAll(RegExp(r'/graphql$'), '');
+  static final String _apiUrl = '${_baseUrl.replaceAll(RegExp(r'/graphql$'), '')}/graphql';
+  static final String _wsUrl = '${_baseUrl.replaceAll(RegExp(r'/graphql$'), '').replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://')}/graphql';
 
   static late ValueNotifier<GraphQLClient> client;
 

@@ -11,8 +11,10 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
 
-const _apiUrl = String.fromEnvironment('API_URL', defaultValue: 'https://api.bitfood.app/graphql');
-const _wsUrl = String.fromEnvironment('WS_URL', defaultValue: 'wss://api.bitfood.app/graphql');
+const _baseUrl = String.fromEnvironment('API_URL', defaultValue: 'https://api.bitfood.app');
+const appBaseUrl = _baseUrl;
+final _apiUrl = '${_baseUrl.replaceAll(RegExp(r'/graphql$'), '')}/graphql';
+final _wsUrl = '${_baseUrl.replaceAll(RegExp(r'/graphql$'), '').replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://')}/graphql';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

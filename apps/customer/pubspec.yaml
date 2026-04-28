@@ -1,7 +1,7 @@
 name: bitfood_customer
 description: BitFood — Peça comida, pague com Bitcoin Lightning
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.2.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -37,6 +37,7 @@ dependencies:
   # Utils
   intl: ^0.18.1
   url_launcher: ^6.2.2
+  package_info_plus: ^8.0.0
 
 flutter:
   uses-material-design: true
