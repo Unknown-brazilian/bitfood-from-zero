@@ -239,6 +239,120 @@
 
     footer a { color: var(--orange); text-decoration: none; }
 
+    /* ── Release notes ─────────────────────────────── */
+    .release-notes {
+      width: 100%;
+      max-width: 760px;
+      margin: -32px auto 40px;
+    }
+
+    .release-notes summary {
+      cursor: pointer;
+      color: var(--orange);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-align: center;
+      list-style: none;
+      padding: 8px 0;
+      user-select: none;
+    }
+
+    .release-notes summary::-webkit-details-marker { display: none; }
+
+    .release-notes[open] summary { margin-bottom: 14px; }
+
+    .release-notes-body {
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 16px;
+      padding: 20px 24px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    .release-notes-body h4 {
+      color: var(--white);
+      font-size: 0.88rem;
+      margin: 14px 0 6px;
+    }
+
+    .release-notes-body h4:first-child { margin-top: 0; }
+
+    .release-notes-body ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .release-notes-body li { margin-bottom: 4px; }
+
+    .release-tag {
+      display: inline-block;
+      background: rgba(247,147,26,0.15);
+      color: var(--orange);
+      border-radius: 6px;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      margin-right: 6px;
+    }
+
+    /* ── Status widget ──────────────────────────────── */
+    .status-widget {
+      width: 100%;
+      max-width: 760px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 16px;
+      padding: 18px 24px;
+      margin-bottom: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 24px;
+    }
+
+    .status-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      width: 100%;
+      margin-bottom: 2px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #555;
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+
+    .status-dot.ok  { background: #4CAF50; box-shadow: 0 0 6px #4CAF5088; }
+    .status-dot.err { background: #F44336; box-shadow: 0 0 6px #F4433688; }
+    .status-dot.loading { background: #888; animation: blink 1.2s ease-in-out infinite; }
+
+    @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+    .status-updated {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.2);
+    }
+
     /* ── Scroll indicator ───────────────────────────── */
     .scroll-hint {
       position: absolute;
@@ -335,6 +449,47 @@
 
   </div>
 
+  <!-- Release notes -->
+  <details class="release-notes">
+    <summary>📋 Notas da versão v1.0.9 ▾</summary>
+    <div class="release-notes-body">
+      <h4><span class="release-tag">v1.0.9</span> Restaurante &amp; Entregador — 28 abr 2026</h4>
+      <ul>
+        <li><strong>Restaurante:</strong> corrigido erro ao criar conta (duplicate key no username)</li>
+        <li><strong>Restaurante:</strong> login agora aceita e-mail ou username</li>
+        <li><strong>Restaurante:</strong> corrigido erro "selecione ou crie uma categoria" ao adicionar o primeiro item do cardápio</li>
+        <li><strong>Restaurante &amp; Entregador:</strong> Lightning Address vinculada à conta de forma permanente — imutável após salvar</li>
+        <li><strong>Todos:</strong> carteira Lightning recuperada automaticamente ao fazer login</li>
+      </ul>
+
+      <h4><span class="release-tag">v1.0.8</span> Lightning Wallet — lançamento inicial</h4>
+      <ul>
+        <li>Cadastro de Lightning Address para receber saques (restaurante e entregador)</li>
+        <li>Cliente pode adicionar fundos via invoice Lightning</li>
+        <li>Seleção de endereço de entrega com GPS e cascata País → Estado → Cidade</li>
+        <li>Suporte a 5 idiomas: 🇧🇷 🇺🇸 🇲🇽 🇫🇷 🇵🇾</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Status dos serviços -->
+  <div class="status-widget" id="statusWidget">
+    <div class="status-title">Status dos serviços</div>
+    <div class="status-item">
+      <div class="status-dot loading" id="dot-api"></div>
+      <span>API</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot loading" id="dot-db"></div>
+      <span>Banco de dados</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot loading" id="dot-btcpay"></div>
+      <span>BTCPay</span>
+    </div>
+    <div class="status-updated" id="statusUpdated">verificando…</div>
+  </div>
+
   <!-- Feature pills -->
   <div class="pills">
     <span class="pill">⚡ Lightning Network</span>
@@ -391,15 +546,50 @@
 </footer>
 
 <script>
-  // Rotating messages — mesma lógica da splash screen
+  // ── Rotating messages ──────────────────────────────────────
   const msgs = document.querySelectorAll('.msg');
   let cur = 0;
-
   setInterval(() => {
     msgs[cur].classList.remove('active');
     cur = (cur + 1) % msgs.length;
     msgs[cur].classList.add('active');
   }, 3400);
+
+  // ── Status widget ──────────────────────────────────────────
+  const STATUS_URL = 'https://api.bitfood.app/health';
+  const POLL_MS    = 30000;
+
+  function setDot(id, state) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'status-dot ' + state;
+  }
+
+  async function fetchStatus() {
+    try {
+      const res  = await fetch(STATUS_URL, { cache: 'no-store' });
+      const data = await res.json();
+      const s    = data.services || {};
+
+      setDot('dot-api',    s.api      ? 'ok' : 'err');
+      setDot('dot-db',     s.database ? 'ok' : 'err');
+      setDot('dot-btcpay', s.btcpay   ? 'ok' : 'err');
+
+      const now = new Date();
+      document.getElementById('statusUpdated').textContent =
+        'atualizado ' + now.getHours().toString().padStart(2,'0') + ':' +
+        now.getMinutes().toString().padStart(2,'0') + ':' +
+        now.getSeconds().toString().padStart(2,'0');
+    } catch (_) {
+      setDot('dot-api',    'err');
+      setDot('dot-db',     'err');
+      setDot('dot-btcpay', 'err');
+      document.getElementById('statusUpdated').textContent = 'sem resposta';
+    }
+  }
+
+  fetchStatus();
+  setInterval(fetchStatus, POLL_MS);
 </script>
 
 </body>
