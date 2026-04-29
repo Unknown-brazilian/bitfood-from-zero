@@ -26,8 +26,9 @@ admin/              Painel admin Next.js (gitignored)
 - LND image: `btcpayserver/lnd:v0.18.5-beta` (v0.18.3 incompatível com Bitcoin Core 31.0)
 - Backend env: `backend/.env` — contém BTCPAY_URL, BTCPAY_API_KEY, BTCPAY_STORE_ID, BTCPAY_WEBHOOK_SECRET
 
-## Versão atual: v1.4.0 (lançada em 2026-04-29)
-GitHub Release: https://github.com/Unknown-brazilian/bitfood-from-zero/releases/tag/v1.4.0
+## Versão atual: v1.4.1 (lançada em 2026-04-29)
+GitHub Release: https://github.com/Unknown-brazilian/bitfood-from-zero/releases/tag/v1.4.1
+(Restaurante e Entregador permanecem em v1.4.0)
 
 ### O que foi feito no v1.4.0
 - Cliente: barra de status corrigida — não sobrepõe mais conteúdo no topo
