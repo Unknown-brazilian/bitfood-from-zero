@@ -45,7 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
           const StatusBanner(),
           Expanded(
@@ -59,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

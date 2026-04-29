@@ -90,12 +90,11 @@ class _StatusBannerState extends State<StatusBanner> {
   Widget build(BuildContext context) {
     if (_loading || _allOk) return const SizedBox.shrink();
 
-    final top = MediaQuery.of(context).padding.top;
     return GestureDetector(
       onTap: () => _showDialog(context),
       child: Container(
         color: const Color(0xFFD32F2F),
-        padding: EdgeInsets.fromLTRB(16, top + 4, 16, 6),
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
         child: Row(
           children: [
             const Icon(Icons.wifi_off, color: Colors.white, size: 14),

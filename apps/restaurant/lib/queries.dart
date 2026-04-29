@@ -33,7 +33,7 @@ const meUserQuery = r'''
 const updateRestaurantProfileMutation = r'''
   mutation UpdateRestaurantProfile($name: String, $phone: String, $address: String, $logo: String, $lightningAddress: String) {
     updateRestaurantProfile(name: $name, phone: $phone, address: $address, logo: $logo, lightningAddress: $lightningAddress) {
-      _id name email phone address logo nameLocked lightningAddress
+      _id name email phone address logo nameLocked lightningAddress lightningAddressLocked
     }
   }
 ''';

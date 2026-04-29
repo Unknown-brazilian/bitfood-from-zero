@@ -96,6 +96,7 @@ const meQuery = r'''
     me {
       _id name phone vehicleType nameLocked available lightningAddress lightningAddressLocked zone { _id }
       tier reputationScore completedOrders totalOrders escrowSats
+      homeAddress homeLocation { lat lng } towardHomeLastUsed
     }
   }
 ''';
@@ -112,6 +113,22 @@ const setLightningAddressMutation = r'''
   mutation SetLightningAddress($lightningAddress: String!) {
     setLightningAddress(lightningAddress: $lightningAddress) {
       _id lightningAddress lightningAddressLocked nameLocked
+    }
+  }
+''';
+
+const setHomeAddressMutation = r'''
+  mutation SetRiderHomeAddress($address: String!, $lat: Float!, $lng: Float!) {
+    setRiderHomeAddress(address: $address, lat: $lat, lng: $lng) {
+      _id homeAddress homeLocation { lat lng }
+    }
+  }
+''';
+
+const activateTowardHomeMutation = r'''
+  mutation ActivateTowardHome {
+    activateTowardHome {
+      _id towardHomeLastUsed
     }
   }
 ''';

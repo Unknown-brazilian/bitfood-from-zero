@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
 import '../widgets/tier_card.dart';
+import '../widgets/address_picker_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback onLogout;
@@ -38,9 +39,11 @@ class _ProfileBodyState extends State<_ProfileBody> {
   bool _loading = false;
   bool _savingLightning = false;
   bool _lightningSaved = false;
+  bool _savingHomeAddress = false;
   String? _error;
   String? _success;
   String? _lightningError;
+  String? _homeAddressError;
 
   @override
   void initState() {
@@ -135,6 +138,29 @@ class _ProfileBodyState extends State<_ProfileBody> {
 
   bool get _nameLocked => widget.me?['nameLocked'] == true;
   bool get _lightningLocked => widget.me?['lightningAddressLocked'] == true;
+
+  Future<void> _saveHomeAddress(AddressResult result) async {
+    setState(() { _savingHomeAddress = true; _homeAddressError = null; });
+    try {
+      final client = GraphQLProvider.of(context).value;
+      final res = await client.mutate(MutationOptions(
+        document: gql(setHomeAddressMutation),
+        variables: {
+          'address': result.formatted,
+          'lat': result.lat,
+          'lng': result.lng,
+        },
+      ));
+      if (res.hasException) throw res.exception!;
+      widget.refetch?.call();
+      setState(() { _savingHomeAddress = false; });
+    } catch (e) {
+      setState(() {
+        _homeAddressError = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
+        _savingHomeAddress = false;
+      });
+    }
+  }
 
   Future<void> _save() async {
     setState(() { _loading = true; _error = null; _success = null; });
@@ -393,6 +419,73 @@ class _ProfileBodyState extends State<_ProfileBody> {
                   ),
                 ),
               ],
+            ]),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Endereço de Casa ─────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.cardWhite,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                Icon(Icons.home_outlined, color: AppColors.primary, size: 18),
+                SizedBox(width: 6),
+                Text('Endereço de Casa',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+              ]),
+              const SizedBox(height: 4),
+              const Text('Usado para filtrar pedidos em direção a casa.',
+                  style: TextStyle(fontSize: 11, color: AppColors.textGrey)),
+              const SizedBox(height: 10),
+              if (_homeAddressError != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF0F0), borderRadius: BorderRadius.circular(6)),
+                  child: Text(_homeAddressError!, style: const TextStyle(color: AppColors.primary, fontSize: 12)),
+                ),
+              if (widget.me?['homeAddress'] != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFBDBDBD)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.location_on_outlined, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(widget.me!['homeAddress'] as String,
+                          style: const TextStyle(fontSize: 12, color: AppColors.textDark)),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 8),
+              ],
+              SizedBox(
+                width: double.infinity,
+                child: _savingHomeAddress
+                    ? const Center(child: SizedBox(height: 24, width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)))
+                    : OutlinedButton.icon(
+                        onPressed: () async {
+                          final result = await showAddressPickerSheet(context, title: 'Endereço de Casa');
+                          if (result != null) await _saveHomeAddress(result);
+                        },
+                        icon: const Icon(Icons.edit_location_alt_outlined, size: 18, color: AppColors.primary),
+                        label: Text(
+                          widget.me?['homeAddress'] != null ? 'Alterar Endereço de Casa' : 'Definir Endereço de Casa',
+                          style: const TextStyle(color: AppColors.primary),
+                        ),
+                        style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primary)),
+                      ),
+              ),
             ]),
           ),
           const SizedBox(height: 20),

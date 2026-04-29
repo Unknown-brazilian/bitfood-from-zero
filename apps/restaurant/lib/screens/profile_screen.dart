@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
 import '../widgets/tier_card.dart';
+import '../widgets/address_picker_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback onLogout;
@@ -160,6 +161,51 @@ class _ProfileBodyState extends State<_ProfileBody> {
     }
   }
 
+  Widget _addressField() {
+    final hasAddress = _addressCtrl.text.trim().isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Endereço', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+        const SizedBox(height: 6),
+        if (hasAddress)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFBDBDBD)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 16, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(_addressCtrl.text.trim(),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final result = await showAddressPickerSheet(context);
+              if (result != null) setState(() => _addressCtrl.text = result.formatted);
+            },
+            icon: const Icon(Icons.edit_location_alt_outlined, size: 18, color: AppColors.primary),
+            label: Text(hasAddress ? 'Alterar Endereço' : 'Selecionar Endereço',
+                style: const TextStyle(color: AppColors.primary)),
+            style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primary)),
+          ),
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
   Widget _field(String label, TextEditingController ctrl, {bool enabled = true, String? hint, TextInputType? keyboard}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +318,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
 
           _field('Nome do Restaurante', _nameCtrl, enabled: !_nameLocked),
           _field('Telefone', _phoneCtrl, keyboard: TextInputType.phone, hint: '+55 11 99999-9999'),
-          _field('Endereço', _addressCtrl, hint: 'Rua das Flores, 123 - São Paulo, SP'),
+          _addressField(),
           _field('Logo (URL da imagem)', _logoCtrl, hint: 'https://...', keyboard: TextInputType.url),
           if (_lightningLocked)
             Container(

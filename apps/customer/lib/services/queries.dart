@@ -129,7 +129,7 @@ const String orderDetailQuery = r'''
 const String meQuery = r'''
   query Me {
     me {
-      _id name email phone lightningAddress balanceSats
+      _id name email phone lightningAddress lightningAddressLocked balanceSats
       tier reputationScore completedOrders totalOrders
       addresses {
         _id label address street number complement neighborhood postalCode city state country details isDefault
@@ -142,7 +142,7 @@ const String meQuery = r'''
 const String setLightningAddressMutation = r'''
   mutation SetLightningAddress($lightningAddress: String) {
     setLightningAddress(lightningAddress: $lightningAddress) {
-      _id lightningAddress
+      _id lightningAddress lightningAddressLocked
     }
   }
 ''';
