@@ -345,13 +345,17 @@ class _DepositTabState extends State<_DepositTab> {
   bool _loading = false;
   String? _error;
   Map<String, dynamic>? _invoice;
+  String? _bolt11;
+  bool _fetchingBolt11 = false;
   bool _paid = false;
   Timer? _pollTimer;
+  Timer? _bolt11Timer;
 
   @override
   void dispose() {
     _amountCtrl.dispose();
     _pollTimer?.cancel();
+    _bolt11Timer?.cancel();
     super.dispose();
   }
 
@@ -361,8 +365,9 @@ class _DepositTabState extends State<_DepositTab> {
       setState(() => _error = 'Digite um valor válido em sats (mínimo 1).');
       return;
     }
-    setState(() { _loading = true; _error = null; _invoice = null; _paid = false; });
+    setState(() { _loading = true; _error = null; _invoice = null; _bolt11 = null; _paid = false; });
     _pollTimer?.cancel();
+    _bolt11Timer?.cancel();
     try {
       final client = GraphQLProvider.of(context).value;
       final res = await client.mutate(MutationOptions(
@@ -371,8 +376,9 @@ class _DepositTabState extends State<_DepositTab> {
       ));
       if (res.hasException) throw res.exception!;
       final inv = res.data!['createDepositInvoice'] as Map<String, dynamic>;
-      setState(() { _invoice = inv; _loading = false; });
-      _startPolling();
+      setState(() { _invoice = inv; _loading = false; _fetchingBolt11 = true; });
+      _startBolt11Polling(inv['invoiceId'] as String);
+      _startPaymentPolling();
     } catch (e) {
       setState(() {
         _error = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
@@ -381,7 +387,33 @@ class _DepositTabState extends State<_DepositTab> {
     }
   }
 
-  void _startPolling() {
+  void _startBolt11Polling(String invoiceId) {
+    int attempts = 0;
+    _bolt11Timer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      if (!mounted || _bolt11 != null) { _bolt11Timer?.cancel(); return; }
+      attempts++;
+      if (attempts > 15) { // give up after 30s
+        _bolt11Timer?.cancel();
+        if (mounted) setState(() => _fetchingBolt11 = false);
+        return;
+      }
+      try {
+        final client = GraphQLProvider.of(context).value;
+        final res = await client.query(QueryOptions(
+          document: gql(depositInvoiceBolt11Query),
+          variables: { 'invoiceId': invoiceId },
+          fetchPolicy: FetchPolicy.networkOnly,
+        ));
+        final bolt11 = res.data?['depositInvoiceBolt11']?['lightningInvoice'] as String?;
+        if (bolt11 != null && bolt11.isNotEmpty && mounted) {
+          _bolt11Timer?.cancel();
+          setState(() { _bolt11 = bolt11; _fetchingBolt11 = false; });
+        }
+      } catch (_) {}
+    });
+  }
+
+  void _startPaymentPolling() {
     _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (!mounted || _paid) return;
       final client = GraphQLProvider.of(context).value;
@@ -392,6 +424,7 @@ class _DepositTabState extends State<_DepositTab> {
       final newBalance = (res.data?['me']?['balanceSats'] ?? 0) as int;
       if (newBalance > widget.balanceSats) {
         _pollTimer?.cancel();
+        _bolt11Timer?.cancel();
         widget.onDeposited?.call();
         if (mounted) setState(() => _paid = true);
       }
@@ -510,28 +543,38 @@ class _DepositTabState extends State<_DepositTab> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
               textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          if (_invoice!['lightningInvoice'] != null)
+          if (_bolt11 != null)
             Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
                 child: QrImageView(
-                  data: (_invoice!['lightningInvoice'] as String).toUpperCase(),
+                  data: _bolt11!.toUpperCase(),
                   size: 220,
                   backgroundColor: Colors.white,
                 ),
               ),
+            )
+          else if (_fetchingBolt11)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.orange)),
+                SizedBox(width: 10),
+                Text('Obtendo invoice BOLT11...', style: TextStyle(fontSize: 12, color: AppColors.textGrey)),
+              ]),
             ),
           const SizedBox(height: 12),
-          if (_invoice!['lightningInvoice'] != null)
-            _CopyRow(label: 'Invoice BOLT11', value: _invoice!['lightningInvoice']),
-          _CopyRow(label: 'Link de pagamento', value: _invoice!['checkoutUrl']),
+          if (_bolt11 != null)
+            _CopyRow(label: 'Invoice BOLT11', value: _bolt11!),
+          _CopyRow(label: 'Link de pagamento', value: _invoice!['checkoutUrl'] as String),
           const SizedBox(height: 10),
-          const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.orange)),
-            SizedBox(width: 8),
-            Text('Aguardando confirmação...', style: TextStyle(fontSize: 12, color: AppColors.textGrey)),
-          ]),
+          if (!_paid)
+            const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.orange)),
+              SizedBox(width: 8),
+              Text('Aguardando confirmação...', style: TextStyle(fontSize: 12, color: AppColors.textGrey)),
+            ]),
         ],
       ],
     );

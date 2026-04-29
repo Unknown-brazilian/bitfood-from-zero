@@ -150,7 +150,15 @@ const String setLightningAddressMutation = r'''
 const String createDepositInvoiceMutation = r'''
   mutation CreateDepositInvoice($amountSats: Int!) {
     createDepositInvoice(amountSats: $amountSats) {
-      invoiceId lightningInvoice checkoutUrl expiresAt
+      invoiceId checkoutUrl expiresAt
+    }
+  }
+''';
+
+const String depositInvoiceBolt11Query = r'''
+  query DepositInvoiceBolt11($invoiceId: String!) {
+    depositInvoiceBolt11(invoiceId: $invoiceId) {
+      lightningInvoice
     }
   }
 ''';
