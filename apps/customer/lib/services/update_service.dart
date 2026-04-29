@@ -35,13 +35,14 @@ class UpdateService {
       if (appData == null) return;
       final latestVersion = appData['version'] as String? ?? '';
       final downloadUrl = appData['url'] as String? ?? '';
+      final notes = appData['notes'] as String? ?? '';
       final info = await PackageInfo.fromPlatform();
       if (!_isNewer(latestVersion, info.version)) return;
       if (!context.mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => _UpdateDialog(version: latestVersion, url: downloadUrl),
+        builder: (_) => _UpdateDialog(version: latestVersion, url: downloadUrl, notes: notes),
       );
     } catch (_) {}
   }
@@ -50,7 +51,8 @@ class UpdateService {
 class _UpdateDialog extends StatelessWidget {
   final String version;
   final String url;
-  const _UpdateDialog({required this.version, required this.url});
+  final String notes;
+  const _UpdateDialog({required this.version, required this.url, required this.notes});
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +62,21 @@ class _UpdateDialog extends StatelessWidget {
         Text('⚡ ', style: TextStyle(fontSize: 22)),
         Text('Atualização disponível', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
       ]),
-      content: Text(
-        'Uma nova versão do BitFood (v$version) está disponível.\n\nBaixe o APK atualizado para continuar usando o app.',
-        style: const TextStyle(fontSize: 14, height: 1.5),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Nova versão v$version disponível.',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            if (notes.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              const Text('O que há de novo:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey)),
+              const SizedBox(height: 4),
+              Text(notes, style: const TextStyle(fontSize: 13, height: 1.6)),
+            ],
+          ],
+        ),
       ),
       actions: [
         TextButton(

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,10 +25,27 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isRegister = false;
   String _vehicleType = 'MOTORCYCLE';
   Object? _error;
+  final _captchaCtrl = TextEditingController();
+  int _captchaA = 0, _captchaB = 0;
+  String? _captchaError;
+
+  @override
+  void initState() {
+    super.initState();
+    _regenerateCaptcha();
+  }
+
+  void _regenerateCaptcha() {
+    final rng = Random();
+    _captchaA = rng.nextInt(9) + 1;
+    _captchaB = rng.nextInt(9) + 1;
+    _captchaCtrl.clear();
+    _captchaError = null;
+  }
 
   @override
   void dispose() {
-    for (final c in [_emailCtrl, _passwordCtrl, _nameCtrl, _phoneCtrl]) {
+    for (final c in [_emailCtrl, _passwordCtrl, _nameCtrl, _phoneCtrl, _captchaCtrl]) {
       c.dispose();
     }
     super.dispose();
@@ -51,6 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (validationError != null) {
       setState(() => _error = validationError);
       return;
+    }
+    if (_isRegister) {
+      final answer = int.tryParse(_captchaCtrl.text.trim());
+      if (answer != _captchaA + _captchaB) {
+        setState(() { _captchaError = 'Resposta incorreta. Tente novamente.'; });
+        _regenerateCaptcha();
+        return;
+      }
     }
     setState(() { _loading = true; _error = null; });
     try {
@@ -201,6 +227,32 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(width: 10),
                     _vehicleCard('MOTORCYCLE', 'Moto', Icons.two_wheeler),
                   ]),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.divider),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Verificação: quanto é $_captchaA + $_captchaB?',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _captchaCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(hintText: 'Sua resposta', filled: true, fillColor: Colors.white, border: OutlineInputBorder(), isDense: true),
+                        ),
+                        if (_captchaError != null) ...[
+                          const SizedBox(height: 6),
+                          Text(_captchaError!, style: const TextStyle(color: AppColors.primary, fontSize: 12)),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
 
                 const SizedBox(height: 20),

@@ -557,7 +557,7 @@
   <div class="downloads">
 
     <a class="dl-card"
-       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.2.0/bitfood-customer-v1.2.0.apk"
+       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.3.0/bitfood-customer-v1.3.0.apk"
        download>
       <span class="dl-icon">🛒</span>
       <span class="dl-label" id="t-dl-label-0"></span>
@@ -566,7 +566,7 @@
     </a>
 
     <a class="dl-card"
-       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.2.0/bitfood-restaurant-v1.2.0.apk"
+       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.3.0/bitfood-restaurant-v1.3.0.apk"
        download>
       <span class="dl-icon">🍽️</span>
       <span class="dl-label" id="t-dl-label-1"></span>
@@ -575,7 +575,7 @@
     </a>
 
     <a class="dl-card"
-       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.2.0/bitfood-rider-v1.2.0.apk"
+       href="https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.3.0/bitfood-rider-v1.3.0.apk"
        download>
       <span class="dl-icon">🏍️</span>
       <span class="dl-label" id="t-dl-label-2"></span>
@@ -592,6 +592,16 @@
 
       <!-- PT -->
       <div class="release-lang" data-for-lang="pt">
+        <h4><span class="release-tag">v1.3.0</span> Segurança &amp; Notificações — 29 abr 2026</h4>
+        <ul>
+          <li><strong>Captcha anti-flood:</strong> desafio matemático simples no cadastro dos 3 apps — impede criação em massa de contas</li>
+          <li><strong>Confirmação de carteira Lightning:</strong> exige digitar "ENTENDI" antes de salvar o endereço de saque (bloqueio permanente)</li>
+          <li><strong>Status dos serviços corrigido:</strong> indicadores API · Banco · BTCPay agora refletem o estado real</li>
+          <li><strong>Banner de status reposicionado:</strong> aparece abaixo da barra de sistema em todos os dispositivos</li>
+          <li><strong>Notas de versão no update:</strong> dialog de atualização agora exibe o changelog completo</li>
+          <li><strong>Escrow: isenção Veterano:</strong> entregadores no nível Veterano (100+ entregas, ≥4.5★) ficam isentos do travamento do escrow</li>
+          <li><strong>BTCPay integrado:</strong> stack Bitcoin/Lightning rodando (bitcoind + LND + BTCPay) — pagamentos reais habilitados</li>
+        </ul>
         <h4><span class="release-tag">v1.2.0</span> Melhorias de UX &amp; Limites em USD — 28 abr 2026</h4>
         <ul>
           <li><strong>URL de conexão corrigida:</strong> os 3 apps agora apontam para <code>https://api.bitfood.app</code> por padrão — sem mais erros de timeout</li>
@@ -629,6 +639,16 @@
 
       <!-- EN -->
       <div class="release-lang" data-for-lang="en">
+        <h4><span class="release-tag">v1.3.0</span> Security &amp; Update Notifications — Apr 29 2026</h4>
+        <ul>
+          <li><strong>Anti-flood captcha:</strong> simple math challenge on signup in all 3 apps — prevents mass account creation</li>
+          <li><strong>Lightning wallet confirmation:</strong> requires typing "ENTENDI" before saving withdrawal address (permanent lock)</li>
+          <li><strong>Service status fixed:</strong> API · Database · BTCPay indicators now reflect real state</li>
+          <li><strong>Status banner repositioned:</strong> appears below the system bar on all devices</li>
+          <li><strong>Release notes in update dialog:</strong> update prompt now shows full changelog</li>
+          <li><strong>Escrow: Veteran exemption:</strong> riders at Veteran tier (100+ deliveries, ≥4.5★) are exempt from escrow lock</li>
+          <li><strong>BTCPay integrated:</strong> Bitcoin/Lightning stack running (bitcoind + LND + BTCPay) — real payments enabled</li>
+        </ul>
         <h4><span class="release-tag">v1.2.0</span> UX Improvements &amp; USD Limits — Apr 28 2026</h4>
         <ul>
           <li><strong>Connection URL fixed:</strong> all 3 apps now point to <code>https://api.bitfood.app</code> by default — no more timeout errors</li>
@@ -889,7 +909,7 @@ const T = {
     repActors: [
       { icon: '🛒', title: 'Para o cliente',      body: 'Seus sats ficam bloqueados em escrow até a entrega ser confirmada. Seu limite de pedido cresce a cada entrega concluída. Criar conta nova te volta ao nível Novo — golpear pequeno não compensa.' },
       { icon: '🍽️', title: 'Para o restaurante', body: 'Score público visível para todos os clientes. Nota baixa empurra você para baixo no ranking de busca. Encantar o cliente é sempre o melhor negócio.' },
-      { icon: '🏍️', title: 'Para o entregador',  body: 'Seu GPS é registrado durante toda a entrega. Se o GPS confirma que você chegou no endereço, disputas falsas são encerradas automaticamente em seu favor.' },
+      { icon: '🏍️', title: 'Para o entregador',  body: 'Seu GPS é registrado durante toda a entrega, provando suas entregas. O valor das suas últimas 10 entregas fica travado como garantia para disputas — se agir de má-fé, esse valor cobre o prejuízo. Ao atingir o nível Veterano (100+ entregas, ≥4.5★), a trava é removida permanentemente.' },
     ],
     repTierHeading: 'Tiers de confiança',
     repTiers: [
@@ -902,7 +922,7 @@ const T = {
   en: {
     htmlLang:      'en',
     metaDesc:      'BitFood — The first Bitcoin Lightning only food delivery app. Order food, pay in sats.',
-    badge:         '⚠️ Alpha · Pre-Beta — v1.2.0',
+    badge:         '⚠️ Alpha · Pre-Beta — v1.3.0',
     alphaLabel:    '⚠️ Alpha Phase:',
     alphaBody:     ' this app is in active development. Features may change, bugs are expected and data may be reset without notice. Use for testing only.',
     msgs:          ['1st Bitcoin Only food delivery app', 'We prefer Wallet of Satoshi ⚡', 'Work everywhere you want,<br>with no borders'],
@@ -928,7 +948,7 @@ const T = {
     repActors: [
       { icon: '🛒', title: 'For customers',    body: 'Your sats are locked in escrow until delivery is confirmed. Your order limit grows with every completed delivery. Creating a new account resets you to New tier — small scams never pay off.' },
       { icon: '🍽️', title: 'For restaurants', body: 'Your public score is visible to every customer. A low rating pushes you down in search results. Delighting customers is always the best business strategy.' },
-      { icon: '🏍️', title: 'For riders',      body: 'Your GPS is recorded throughout the delivery. If GPS confirms you reached the address, false disputes are automatically resolved in your favor.' },
+      { icon: '🏍️', title: 'For riders',      body: 'Your GPS is recorded throughout every delivery, proving your work. The value of your last 10 deliveries is locked as collateral for disputes — if you act in bad faith, that amount covers the loss. Once you reach Veteran tier (100+ deliveries, ≥4.5★), the lock is permanently removed.' },
     ],
     repTierHeading: 'Trust tiers',
     repTiers: [
@@ -941,7 +961,7 @@ const T = {
   es: {
     htmlLang:      'es',
     metaDesc:      'BitFood — La primera app de delivery de comida solo Bitcoin Lightning. Pide comida, paga en sats.',
-    badge:         '⚠️ Alpha · Pre-Beta — v1.2.0',
+    badge:         '⚠️ Alpha · Pre-Beta — v1.3.0',
     alphaLabel:    '⚠️ Fase Alpha:',
     alphaBody:     ' esta app está en desarrollo activo. Las funcionalidades pueden cambiar, se esperan errores y los datos pueden reiniciarse sin previo aviso. Úsala solo para pruebas.',
     msgs:          ['Primera app de delivery solo Bitcoin', 'Preferimos Wallet of Satoshi ⚡', 'Trabaja donde quieras,<br>sin fronteras'],
@@ -967,7 +987,7 @@ const T = {
     repActors: [
       { icon: '🛒', title: 'Para el cliente',      body: 'Tus sats quedan bloqueados en escrow hasta confirmar la entrega. Tu límite de pedido crece con cada entrega completada. Crear una cuenta nueva te regresa al nivel Nuevo — el fraude pequeño nunca conviene.' },
       { icon: '🍽️', title: 'Para el restaurante', body: 'Tu puntuación pública es visible para todos los clientes. Una mala nota te baja en el ranking de búsqueda. Satisfacer al cliente es siempre el mejor negocio.' },
-      { icon: '🏍️', title: 'Para el repartidor',  body: 'Tu GPS se registra durante toda la entrega. Si el GPS confirma que llegaste al domicilio, las disputas falsas se resuelven automáticamente a tu favor.' },
+      { icon: '🏍️', title: 'Para el repartidor',  body: 'Tu GPS se registra durante toda la entrega, probando tu trabajo. El valor de tus últimas 10 entregas queda bloqueado como garantía para disputas — si actúas de mala fe, ese monto cubre el perjuicio. Al alcanzar el nivel Veterano (100+ entregas, ≥4.5★), el bloqueo se elimina permanentemente.' },
     ],
     repTierHeading: 'Niveles de confianza',
     repTiers: [
@@ -1006,7 +1026,7 @@ const T = {
     repActors: [
       { icon: '🛒', title: 'Pour les clients',     body: "Vos sats sont bloqués en escrow jusqu'à la confirmation de la livraison. Votre limite de commande grandit à chaque livraison réussie. Créer un nouveau compte vous remet au niveau Nouveau — la fraude ne paie jamais." },
       { icon: '🍽️', title: 'Pour les restaurants', body: "Votre score public est visible de tous les clients. Une mauvaise note vous fait descendre dans les résultats. Satisfaire les clients est toujours la meilleure stratégie commerciale." },
-      { icon: '🏍️', title: 'Pour les livreurs',    body: "Votre GPS est enregistré pendant toute la livraison. Si le GPS confirme votre arrivée à l'adresse, les litiges abusifs sont résolus automatiquement en votre faveur." },
+      { icon: '🏍️', title: 'Pour les livreurs',    body: "Votre GPS est enregistré pendant toute la livraison, prouvant votre travail. La valeur de vos 10 dernières livraisons est bloquée en garantie pour les litiges — toute mauvaise foi est couverte par ce montant. Une fois le niveau Vétéran atteint (100+ livraisons, ≥4.5★), le blocage est définitivement supprimé." },
     ],
     repTierHeading: 'Niveaux de confiance',
     repTiers: [
@@ -1019,7 +1039,7 @@ const T = {
   gn: {
     htmlLang:      'gn',
     metaDesc:      "BitFood — Peteĩ mba'eporurã Bitcoin Lightning rehegua. Ejerure rembi'u, embohero sats ndive.",
-    badge:         '⚠️ Alpha · Pre-Beta — v1.2.0',
+    badge:         '⚠️ Alpha · Pre-Beta — v1.3.0',
     alphaLabel:    '⚠️ Alpha Mba\'e:',
     alphaBody:     " ko mba'eporurã oĩ mba'apopy rehe. Mba'eporu ikatu ombosakã, ojehu vai ha mba'e ojejapoha ikatu ojeguejy oñemomarandu'ỹre. Eiporu porubyrã haguã añoite.",
     msgs:          ["Peteĩ mba'eporurã Bitcoin rehegua", 'Roñe\'ẽ Wallet of Satoshi ndive ⚡', 'Robajéta reikóva rehe,<br>tape\'ỹre'],
@@ -1192,10 +1212,9 @@ async function fetchStatus() {
   try {
     const res  = await fetch(STATUS_URL, { cache: 'no-store' });
     const data = await res.json();
-    const s    = data.services || {};
-    setDot('dot-api',    s.api      ? 'ok' : 'err');
-    setDot('dot-db',     s.database ? 'ok' : 'err');
-    setDot('dot-btcpay', s.btcpay   ? 'ok' : 'err');
+    setDot('dot-api',    data.api     === 'ok' ? 'ok' : 'err');
+    setDot('dot-db',     data.mongodb === 'ok' ? 'ok' : 'err');
+    setDot('dot-btcpay', data.btcpay  === 'ok' ? 'ok' : 'err');
   } catch (_) {
     setDot('dot-api',    'err');
     setDot('dot-db',     'err');

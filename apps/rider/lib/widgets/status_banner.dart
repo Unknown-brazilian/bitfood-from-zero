@@ -35,12 +35,11 @@ class _StatusBannerState extends State<StatusBanner> {
     try {
       final res = await http.get(Uri.parse(_url)).timeout(const Duration(seconds: 6));
       final data = jsonDecode(res.body) as Map<String, dynamic>;
-      final s = data['services'] as Map<String, dynamic>? ?? {};
       if (mounted) setState(() {
         _services = {
-          'api':      s['api'] == true,
-          'database': s['database'] == true,
-          'btcpay':   s['btcpay'] == true,
+          'api':      data['api'] == 'ok',
+          'database': data['mongodb'] == 'ok',
+          'btcpay':   data['btcpay'] == 'ok',
         };
         _loading = false;
       });
@@ -91,11 +90,12 @@ class _StatusBannerState extends State<StatusBanner> {
   Widget build(BuildContext context) {
     if (_loading || _allOk) return const SizedBox.shrink();
 
+    final top = MediaQuery.of(context).padding.top;
     return GestureDetector(
       onTap: () => _showDialog(context),
       child: Container(
         color: const Color(0xFFD32F2F),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: EdgeInsets.fromLTRB(16, top + 4, 16, 6),
         child: Row(
           children: [
             const Icon(Icons.wifi_off, color: Colors.white, size: 14),

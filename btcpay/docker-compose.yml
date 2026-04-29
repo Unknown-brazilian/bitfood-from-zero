@@ -21,7 +21,7 @@ services:
   # ── Bitcoin Core (pruned: mantém só 1 GB de blocos recentes) ──
   # UTXO set (~6-8 GB) é sempre guardado — não é afetado pelo prune.
   bitcoind:
-    image: btcpayserver/bitcoin:27.0
+    image: btcpayserver/bitcoin:31.0
     restart: unless-stopped
     logging: *log
     environment:
@@ -45,25 +45,31 @@ services:
 
   # ── LND — Lightning Network Daemon ────────────────────────────
   lnd:
-    image: btcpayserver/lnd:v0.18.3-beta
+    image: btcpayserver/lnd:v0.18.5-beta
     restart: unless-stopped
     logging: *log
     environment:
-      LND_CHAIN: bitcoin
+      LND_CHAIN: btc
       LND_ENVIRONMENT: mainnet
+      LND_REST_LISTEN_HOST: https://localhost:8080
       LND_EXTRA_ARGS: |-
+        bitcoin.node=bitcoind
+
+        [Bitcoind]
         bitcoind.rpchost=bitcoind:8332
         bitcoind.rpcuser=${BTC_RPC_USER}
-        bitcoind.rpcpassword=${BTC_RPC_PASS}
+        bitcoind.rpcpass=${BTC_RPC_PASS}
         bitcoind.zmqpubrawblock=tcp://bitcoind:28332
         bitcoind.zmqpubrawtx=tcp://bitcoind:28333
+
+        [Application Options]
         restlisten=0.0.0.0:8080
         rpclisten=0.0.0.0:10009
         tlsextradomain=lnd
         alias=BitFood
         color=#F7931A
-        accept-keysend=true
-        allow-circular-route=true
+        accept-keysend=1
+        allow-circular-route=1
     volumes:
       - lnd_data:/root/.lnd
     ports:

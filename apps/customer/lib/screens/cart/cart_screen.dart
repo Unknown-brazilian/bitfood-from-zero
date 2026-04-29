@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../models/cart_model.dart';
 import '../../services/queries.dart';
 import '../checkout/payment_screen.dart';
+import '../order/order_detail_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -190,10 +191,22 @@ class _CartScreenState extends State<CartScreen> {
       cart.clear();
 
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => PaymentScreen(invoiceData: data)),
-        );
+        // If order is already paid (demo/mock mode without BTCPay configured)
+        // skip the payment screen and go straight to order detail
+        final alreadyPaid = data['order']?['paymentStatus'] == 'PAID';
+        if (alreadyPaid) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OrderDetailScreen(orderId: data['order']['_id'] as String),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => PaymentScreen(invoiceData: data)),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

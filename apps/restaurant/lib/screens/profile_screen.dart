@@ -86,7 +86,51 @@ class _ProfileBodyState extends State<_ProfileBody> {
   bool get _nameLocked => widget.restaurant?['nameLocked'] == true;
   bool get _lightningLocked => widget.restaurant?['lightningAddressLocked'] == true;
 
+  Future<bool> _confirmLightningChange() async {
+    final ctrl = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('⚠️ Atenção'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Seu endereço Lightning será bloqueado após a confirmação.\n\n'
+                'Não será possível alterá-lo depois. Certifique-se de que o endereço está correto.\n\n'
+                'Digite ENTENDI para confirmar:',
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                onChanged: (_) => setS(() {}),
+                decoration: const InputDecoration(hintText: 'ENTENDI', border: OutlineInputBorder()),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: ctrl.text.trim() == 'ENTENDI' ? () => Navigator.pop(ctx, true) : null,
+              child: const Text('Confirmar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    ctrl.dispose();
+    return confirmed ?? false;
+  }
+
   Future<void> _save() async {
+    final lnAddr = _lightningCtrl.text.trim();
+    if (!_lightningLocked && lnAddr.isNotEmpty) {
+      final ok = await _confirmLightningChange();
+      if (!ok) return;
+    }
     setState(() { _loading = true; _error = null; _success = null; });
     try {
       final client = GraphQLProvider.of(context).value;
