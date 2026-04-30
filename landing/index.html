@@ -956,6 +956,40 @@
   <div class="rep-tiers" id="rep-tiers-grid"></div>
 </section>
 
+<!-- ── Other apps by unknown_BTC_usr ──────────────────── -->
+<section id="other-apps" style="padding: 80px 24px; max-width: 860px; margin: 0 auto; text-align: center;">
+
+  <p style="font-size:0.78rem; font-weight:700; letter-spacing:.12em; color:var(--orange); text-transform:uppercase; margin-bottom:12px;" id="t-oa-eyebrow"></p>
+  <h2 style="font-size:clamp(1.4rem,4vw,2rem); font-weight:800; margin-bottom:10px;" id="t-oa-title"></h2>
+  <p style="color:var(--muted); font-size:0.92rem; max-width:520px; margin:0 auto 48px; line-height:1.6;" id="t-oa-subtitle"></p>
+
+  <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+
+    <!-- LN Markets Bot card -->
+    <a href="lnmarkets-bot.html"
+       style="flex:1 1 300px; max-width:380px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-decoration:none; color:var(--white); text-align:left; display:flex; flex-direction:column; gap:12px; transition:border-color .2s, transform .2s;"
+       onmouseover="this.style.borderColor='var(--orange)';this.style.transform='translateY(-4px)'"
+       onmouseout="this.style.borderColor='var(--card-br)';this.style.transform='translateY(0)'">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:52px;height:52px;background:linear-gradient(135deg,#F7931A22,#F7931A44);border:1.5px solid var(--orange);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0;">⚡</div>
+        <div>
+          <div style="font-size:1.05rem;font-weight:800;">LN Markets Bot</div>
+          <div style="font-size:0.75rem;color:var(--orange);font-weight:600;">v3.0.0 — Android + Linux</div>
+        </div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--muted);line-height:1.55;margin:0;" id="t-oa-lnbot-desc"></p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+        <span style="background:rgba(247,147,26,0.12);border:1px solid rgba(247,147,26,0.3);border-radius:20px;padding:3px 10px;font-size:0.72rem;color:var(--orange);">₿ Bitcoin</span>
+        <span style="background:rgba(247,147,26,0.12);border:1px solid rgba(247,147,26,0.3);border-radius:20px;padding:3px 10px;font-size:0.72rem;color:var(--orange);">🤖 <span id="t-oa-tag-auto"></span></span>
+        <span style="background:rgba(247,147,26,0.12);border:1px solid rgba(247,147,26,0.3);border-radius:20px;padding:3px 10px;font-size:0.72rem;color:var(--orange);">📊 Trend Tabajara 3.0</span>
+      </div>
+      <div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--card-br);font-size:0.82rem;color:var(--orange);font-weight:600;" id="t-oa-lnbot-cta"></div>
+    </a>
+
+  </div>
+
+</section>
+
 <!-- ── Footer ─────────────────────────────────────────── -->
 <footer>
   <p style="margin-bottom:8px;">
@@ -1008,6 +1042,12 @@ const T = {
       { icon: '⭐', name: 'Confiável', cond: '20+ pedidos',  score: '≥ 4.0★', limit: '$200 USD' },
       { icon: '🏆', name: 'Veterano',  cond: '100+ pedidos', score: '≥ 4.5★', limit: 'Sem limite' },
     ],
+    oaEyebrow:     'Outros apps',
+    oaTitle:       'Outros apps desenvolvidos por unknown_BTC_usr',
+    oaSubtitle:    'Ferramentas Bitcoin para traders e usuários de Lightning Network.',
+    oaLnbotDesc:   'Bot de trading automatizado para LN Markets seguindo a Trend Tabajara 3.0 de André Machado. Disponível para Android e Linux.',
+    oaTagAuto:     'Automático',
+    oaLnbotCta:    'Saiba mais e baixe →',
   },
   en: {
     htmlLang:      'en',
@@ -1047,6 +1087,12 @@ const T = {
       { icon: '⭐', name: 'Trusted', cond: '20+ orders',  score: '≥ 4.0★', limit: '$200 USD' },
       { icon: '🏆', name: 'Veteran', cond: '100+ orders', score: '≥ 4.5★', limit: 'No limit' },
     ],
+    oaEyebrow:     'More apps',
+    oaTitle:       'Other apps developed by unknown_BTC_usr',
+    oaSubtitle:    'Bitcoin tools for traders and Lightning Network users.',
+    oaLnbotDesc:   'Automated trading bot for LN Markets following Trend Tabajara 3.0 by André Machado. Available for Android and Linux.',
+    oaTagAuto:     'Automated',
+    oaLnbotCta:    'Learn more & download →',
   },
   es: {
     htmlLang:      'es',
@@ -1086,6 +1132,12 @@ const T = {
       { icon: '⭐', name: 'Confiable', cond: '20+ pedidos',  score: '≥ 4.0★', limit: '$200 USD' },
       { icon: '🏆', name: 'Veterano',  cond: '100+ pedidos', score: '≥ 4.5★', limit: 'Sin límite' },
     ],
+    oaEyebrow:     'Más apps',
+    oaTitle:       'Otras apps desarrolladas por unknown_BTC_usr',
+    oaSubtitle:    'Herramientas Bitcoin para traders y usuarios de Lightning Network.',
+    oaLnbotDesc:   'Bot de trading automatizado para LN Markets siguiendo la Trend Tabajara 3.0 de André Machado. Disponible para Android y Linux.',
+    oaTagAuto:     'Automático',
+    oaLnbotCta:    'Saber más y descargar →',
   },
   fr: {
     htmlLang:      'fr',
@@ -1125,6 +1177,12 @@ const T = {
       { icon: '⭐', name: 'Fiable',  cond: '20+ commandes',  score: '≥ 4.0★', limit: '200 USD' },
       { icon: '🏆', name: 'Vétéran', cond: '100+ commandes', score: '≥ 4.5★', limit: 'Sans limite' },
     ],
+    oaEyebrow:     'Autres apps',
+    oaTitle:       'Autres apps développées par unknown_BTC_usr',
+    oaSubtitle:    'Outils Bitcoin pour traders et utilisateurs du Lightning Network.',
+    oaLnbotDesc:   "Bot de trading automatisé pour LN Markets suivant la Trend Tabajara 3.0 d'André Machado. Disponible pour Android et Linux.",
+    oaTagAuto:     'Automatisé',
+    oaLnbotCta:    'En savoir plus et télécharger →',
   },
   gn: {
     htmlLang:      'gn',
@@ -1164,6 +1222,12 @@ const T = {
       { icon: '⭐', name: 'Confiable', cond: "20+ mba'eporurã",  score: '≥ 4.0★', limit: '$200 USD' },
       { icon: '🏆', name: 'Veterano', cond: "100+ mba'eporurã",  score: '≥ 4.5★', limit: "Límite'ỹre" },
     ],
+    oaEyebrow:     "Ambue mba'eporurã",
+    oaTitle:       "Ambue mba'eporurã unknown_BTC_usr ojapova",
+    oaSubtitle:    "Mba'eporu Bitcoin rehegua traders ha Lightning Network poruhárape.",
+    oaLnbotDesc:   "Mba'eporurã trading ijehegui LN Markets-pe Trend Tabajara 3.0 rehe André Machado rehegua. Android ha Linux-pe oĩ.",
+    oaTagAuto:     'Ijehegui',
+    oaLnbotCta:    "Ehecha hetave ha emono'ã →",
   },
 };
 
@@ -1246,6 +1310,14 @@ function applyLang(lang) {
       <div class="rep-tier-limit" style="color:${tierColors[i]}">${tier.limit}</div>
     </div>
   `).join('');
+
+  // Other apps section
+  document.getElementById('t-oa-eyebrow').textContent    = t.oaEyebrow;
+  document.getElementById('t-oa-title').textContent      = t.oaTitle;
+  document.getElementById('t-oa-subtitle').textContent   = t.oaSubtitle;
+  document.getElementById('t-oa-lnbot-desc').textContent = t.oaLnbotDesc;
+  document.getElementById('t-oa-tag-auto').textContent   = t.oaTagAuto;
+  document.getElementById('t-oa-lnbot-cta').textContent  = t.oaLnbotCta;
 
   // Footer
   document.getElementById('t-footer-built').textContent    = t.footerBuilt;

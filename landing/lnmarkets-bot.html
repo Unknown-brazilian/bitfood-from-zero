@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="LN Markets Trend Tabajara 3.0 Bot — Bot de trading automatizado para LN Markets. Funciona em Android e Linux."/>
+  <meta property="og:title" content="LN Markets Bot ⚡"/>
+  <meta property="og:description" content="Bot de trading automatizado para LN Markets — Android APK + Linux .deb"/>
+  <title>LN Markets Bot ⚡ — by unknown_BTC_usr</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0A0A0F;
+      --orange:  #F7931A;
+      --white:   #FFFFFF;
+      --muted:   rgba(255,255,255,0.55);
+      --card-bg: rgba(255,255,255,0.04);
+      --card-br: rgba(255,255,255,0.10);
+      --green:   #00C853;
+      --red:     #FF1744;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Language switcher ── */
+    #lang-switcher {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      display: flex;
+      gap: 4px;
+      background: rgba(10,10,15,0.85);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 30px;
+      padding: 5px 8px;
+      backdrop-filter: blur(8px);
+    }
+    .lang-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      line-height: 1;
+      padding: 2px;
+      border-radius: 50%;
+      transition: transform .15s, opacity .15s;
+      opacity: .45;
+    }
+    .lang-btn:hover  { opacity: .85; transform: scale(1.15); }
+    .lang-btn.active { opacity: 1; }
+
+    /* ── Back link ── */
+    .back-link {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      background: rgba(10,10,15,0.85);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 30px;
+      padding: 8px 16px;
+      backdrop-filter: blur(8px);
+      color: var(--orange);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .back-link:hover { opacity: .8; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+
+    .logo-box {
+      width: 88px; height: 88px;
+      background: linear-gradient(135deg, #F7931A22, #F7931A44);
+      border: 2px solid var(--orange);
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem;
+      margin-bottom: 24px;
+      box-shadow: 0 0 40px #F7931A33;
+    }
+
+    .title {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff 40%, var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      margin-bottom: 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(247,147,26,0.12);
+      border: 1px solid rgba(247,147,26,0.35);
+      border-radius: 30px;
+      padding: 6px 18px;
+      font-size: 0.82rem;
+      color: var(--orange);
+      font-weight: 600;
+      margin-bottom: 36px;
+    }
+
+    /* ── Download cards ── */
+    .downloads {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .dl-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 18px;
+      padding: 20px 24px;
+      text-decoration: none;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 160px;
+      transition: border-color .2s, transform .2s;
+    }
+    .dl-card:hover {
+      border-color: var(--orange);
+      transform: translateY(-3px);
+    }
+    .dl-icon  { font-size: 2rem; }
+    .dl-label { font-size: 0.72rem; color: var(--muted); }
+    .dl-name  { font-size: 0.95rem; font-weight: 700; }
+    .dl-btn {
+      margin-top: 8px;
+      background: var(--orange);
+      color: #000;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    /* ── Warning box ── */
+    .warning-box {
+      max-width: 560px;
+      margin: 0 auto 36px;
+      background: rgba(255,23,68,0.07);
+      border: 1px solid rgba(255,23,68,0.25);
+      border-radius: 14px;
+      padding: 16px 22px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.6;
+      text-align: left;
+    }
+    .warning-box strong { color: #FF5252; }
+
+    /* ── Pills ── */
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+    .pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── Section ── */
+    .section { padding: 80px 24px; max-width: 860px; margin: 0 auto; }
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 800;
+      margin-bottom: 48px;
+    }
+
+    /* ── How it works cards ── */
+    .hiw-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+    .hiw-card {
+      flex: 1 1 220px;
+      max-width: 260px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+    }
+    .hiw-card .icon  { font-size: 2.4rem; margin-bottom: 16px; }
+    .hiw-card h3     { font-weight: 700; margin-bottom: 8px; font-size: 0.95rem; }
+    .hiw-card p      { color: var(--muted); font-size: 0.85rem; line-height: 1.55; }
+
+    /* ── Features grid ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 0;
+    }
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-br);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .feature-card .icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .feature-card h4    { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; }
+    .feature-card p     { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── GitHub banner ── */
+    .github-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(247,147,26,0.07);
+      border: 1px solid rgba(247,147,26,0.25);
+      border-radius: 14px;
+      padding: 18px 24px;
+      max-width: 500px;
+      margin: 0 auto 48px;
+      text-decoration: none;
+      color: var(--white);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: border-color .2s;
+    }
+    .github-banner:hover { border-color: var(--orange); }
+    .github-banner .gh-icon { font-size: 1.6rem; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--card-br);
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.8;
+    }
+    footer a { color: var(--orange); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      #lang-switcher { top: 10px; right: 10px; padding: 4px 6px; }
+      .lang-btn { font-size: 1.1rem; }
+      .back-link { top: 10px; left: 10px; font-size: 0.75rem; padding: 6px 12px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ── Back link ── -->
+<a class="back-link" href="index.html" id="t-back">← BitFood</a>
+
+<!-- ── Language switcher ── -->
+<div id="lang-switcher">
+  <button class="lang-btn" data-lang="pt" title="Português">🇧🇷</button>
+  <button class="lang-btn" data-lang="en" title="English">🇺🇸</button>
+  <button class="lang-btn" data-lang="es" title="Español">🇲🇽</button>
+  <button class="lang-btn" data-lang="fr" title="Français">🇫🇷</button>
+  <button class="lang-btn" data-lang="gn" title="Guaraní">🇵🇾</button>
+</div>
+
+<!-- ── Hero ── -->
+<section class="hero">
+
+  <div class="logo-box">⚡</div>
+
+  <h1 class="title" id="t-title">LN Markets Bot</h1>
+  <p class="subtitle" id="t-subtitle"></p>
+
+  <div class="badge" id="t-badge">v3.0.0 — Trend Tabajara 3.0</div>
+
+  <!-- Warning -->
+  <div class="warning-box">
+    <strong id="t-warn-label"></strong>
+    <span id="t-warn-body"></span>
+  </div>
+
+  <!-- Downloads -->
+  <div class="downloads">
+
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/lnmarkets-trend-bot/releases/download/v3.0.0/lnmarkets-bot-v3.0.0.apk"
+       download>
+      <span class="dl-icon">📱</span>
+      <span class="dl-label" id="t-dl-label-0"></span>
+      <span class="dl-name"  id="t-dl-name-0"></span>
+      <span class="dl-btn"   id="t-dl-btn-0"></span>
+    </a>
+
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/lnmarkets-trend-bot/releases/download/v3.0.0/lnmarkets-bot-linux_3.0.0_amd64.deb"
+       download>
+      <span class="dl-icon">🖥️</span>
+      <span class="dl-label" id="t-dl-label-1"></span>
+      <span class="dl-name"  id="t-dl-name-1"></span>
+      <span class="dl-btn"   id="t-dl-btn-1"></span>
+    </a>
+
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/lnmarkets-trend-bot/releases/download/v3.0.0/lnmarkets-trend-bot_3.0.0_all.deb"
+       download>
+      <span class="dl-icon">🐍</span>
+      <span class="dl-label" id="t-dl-label-2"></span>
+      <span class="dl-name"  id="t-dl-name-2"></span>
+      <span class="dl-btn"   id="t-dl-btn-2"></span>
+    </a>
+
+  </div>
+
+  <!-- Pills -->
+  <div class="pills" id="pills-row"></div>
+
+</section>
+
+<!-- ── How it works ── -->
+<section class="section">
+  <h2 class="section-title" id="t-hiw-title"></h2>
+  <div class="hiw-grid">
+    <div class="hiw-card">
+      <div class="icon">⬇️</div>
+      <h3 id="t-hiw0-title"></h3>
+      <p  id="t-hiw0-body"></p>
+    </div>
+    <div class="hiw-card">
+      <div class="icon">🔑</div>
+      <h3 id="t-hiw1-title"></h3>
+      <p  id="t-hiw1-body"></p>
+    </div>
+    <div class="hiw-card">
+      <div class="icon">🤖</div>
+      <h3 id="t-hiw2-title"></h3>
+      <p  id="t-hiw2-body"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="section" style="padding-top:0;">
+  <h2 class="section-title" id="t-feat-title"></h2>
+  <div class="features-grid" id="features-grid"></div>
+</section>
+
+<!-- ── Strategy ── -->
+<section class="section" style="padding-top:0; max-width:700px;">
+  <h2 class="section-title" id="t-strat-title"></h2>
+  <div style="background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:32px 28px; text-align:center;">
+    <div style="font-size:2rem; margin-bottom:16px;">📊</div>
+    <h3 style="color:var(--orange); font-size:1.1rem; margin-bottom:12px;" id="t-strat-name"></h3>
+    <p style="color:var(--muted); font-size:0.88rem; line-height:1.65;" id="t-strat-body"></p>
+  </div>
+</section>
+
+<!-- ── GitHub ── -->
+<section class="section" style="padding-top:0; padding-bottom:40px;">
+  <a class="github-banner"
+     href="https://github.com/Unknown-brazilian/lnmarkets-trend-bot"
+     target="_blank" rel="noopener">
+    <span class="gh-icon">⭐</span>
+    <span id="t-github-cta"></span>
+  </a>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>
+    LN Markets Bot &copy; 2025 &nbsp;·&nbsp;
+    <a href="https://github.com/Unknown-brazilian/lnmarkets-trend-bot" target="_blank">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/Unknown-brazilian/lnmarkets-trend-bot/releases" target="_blank" id="t-footer-releases"></a>
+    &nbsp;·&nbsp;
+    <a href="https://t.me/BrazilBelge" target="_blank">Telegram</a>
+  </p>
+  <p style="margin-top:6px;" id="t-footer-dev"></p>
+</footer>
+
+<script>
+// ── Translations ──────────────────────────────────────────────────────────────
+const T = {
+  pt: {
+    htmlLang:    'pt-BR',
+    metaDesc:    'LN Markets Trend Tabajara 3.0 Bot — Bot de trading automatizado para LN Markets. Android APK + Linux .deb.',
+    back:        '← BitFood',
+    subtitle:    'Bot de trading automatizado para LN Markets · Trend Tabajara 3.0',
+    warnLabel:   '⚠️ Aviso:',
+    warnBody:    ' trading alavancado envolve risco significativo de perda de capital. Este bot opera automaticamente com seu dinheiro. Use por sua conta e risco.',
+    dlLabel:     ['Android', 'Linux (Flutter)', 'Linux (Python)'],
+    dlName:      ['APK', '.deb  amd64', '.deb  all'],
+    dlBtn:       '⬇ Baixar',
+    pills:       ['₿ Bitcoin only', '⚡ LN Markets', '🤖 Automático', '🇧🇷 🇺🇸 🇫🇷 3 idiomas', '📊 Trend Tabajara 3.0'],
+    hiwTitle:    'Como funciona',
+    hiw: [
+      { title: '1. Baixe e instale',       body: 'Instale o APK no Android ou o .deb no Linux. Sem loja de apps — direto do GitHub.' },
+      { title: '2. Configure sua API Key', body: 'Crie uma conta na LN Markets e gere sua API Key. Cole as credenciais no app.' },
+      { title: '3. Inicie o bot',          body: 'O bot monitora o mercado e opera automaticamente seguindo a Trend Tabajara 3.0.' },
+    ],
+    featTitle:   'Recursos',
+    features: [
+      { icon: '📈', title: 'Trend Tabajara 3.0', body: 'EMA 9/21 com confirmação EMA 50. Estratégia de André Machado.' },
+      { icon: '🛡️', title: 'Take-Profit & Stop-Loss', body: 'TP e SL em percentual, aplicados diretamente na corretora.' },
+      { icon: '🌐', title: '3 idiomas', body: 'Interface em Português, English e Français.' },
+      { icon: '🔔', title: 'Foreground Service', body: 'Bot continua rodando em background no Android mesmo com outros apps abertos.' },
+      { icon: '📡', title: 'Monitoramento ao vivo', body: 'Acompanhe tendência e preço em tempo real antes mesmo de iniciar o bot.' },
+      { icon: '🤝', title: 'Espaço para parceiros', body: 'Banner de parceiros rotativo em todas as telas. Entre em contato pelo Telegram.' },
+    ],
+    stratTitle:  'A estratégia',
+    stratName:   'Trend Tabajara 3.0 — por André Machado',
+    stratBody:   'O bot usa cruzamento de EMA 9 e EMA 21 como sinal de entrada. A EMA 50 funciona como filtro de confirmação de tendência. Quando a EMA 9 cruza acima da EMA 21 e ambas estão acima da EMA 50, o bot abre LONG. Na inversão, fecha e abre SHORT. Sem margem de opiniões — pura matemática.',
+    githubCta:   'Veja o código fonte no GitHub →',
+    footerReleases: 'Releases',
+    footerDev:   'Desenvolvido por unknown_BTC_usr · Feito com ❤️ em Python e Dart/Flutter com Claude',
+  },
+  en: {
+    htmlLang:    'en',
+    metaDesc:    'LN Markets Trend Tabajara 3.0 Bot — Automated trading bot for LN Markets. Android APK + Linux .deb.',
+    back:        '← BitFood',
+    subtitle:    'Automated trading bot for LN Markets · Trend Tabajara 3.0',
+    warnLabel:   '⚠️ Warning:',
+    warnBody:    ' leveraged trading involves significant risk of capital loss. This bot operates automatically with your funds. Use at your own risk.',
+    dlLabel:     ['Android', 'Linux (Flutter)', 'Linux (Python)'],
+    dlName:      ['APK', '.deb  amd64', '.deb  all'],
+    dlBtn:       '⬇ Download',
+    pills:       ['₿ Bitcoin only', '⚡ LN Markets', '🤖 Automated', '🇧🇷 🇺🇸 🇫🇷 3 languages', '📊 Trend Tabajara 3.0'],
+    hiwTitle:    'How it works',
+    hiw: [
+      { title: '1. Download & install',  body: 'Install the APK on Android or the .deb on Linux. No app store — directly from GitHub.' },
+      { title: '2. Set up your API Key', body: 'Create an account on LN Markets and generate your API Key. Paste your credentials in the app.' },
+      { title: '3. Start the bot',       body: 'The bot monitors the market and trades automatically following Trend Tabajara 3.0.' },
+    ],
+    featTitle:   'Features',
+    features: [
+      { icon: '📈', title: 'Trend Tabajara 3.0', body: 'EMA 9/21 with EMA 50 confirmation filter. Strategy by André Machado.' },
+      { icon: '🛡️', title: 'Take-Profit & Stop-Loss', body: 'Percentage-based TP and SL, applied directly at the exchange.' },
+      { icon: '🌐', title: '3 languages', body: 'Interface in Português, English and Français.' },
+      { icon: '🔔', title: 'Foreground Service', body: 'Bot keeps running in the background on Android even while using other apps.' },
+      { icon: '📡', title: 'Live monitoring', body: 'Watch trend and price in real time before even starting the bot.' },
+      { icon: '🤝', title: 'Partner slots', body: 'Rotating partner banner on every screen. Contact via Telegram.' },
+    ],
+    stratTitle:  'The strategy',
+    stratName:   'Trend Tabajara 3.0 — by André Machado',
+    stratBody:   'The bot uses EMA 9 and EMA 21 crossover as the entry signal. EMA 50 acts as a trend confirmation filter. When EMA 9 crosses above EMA 21 and both are above EMA 50, the bot opens LONG. On reversal, it closes and opens SHORT. No opinions — pure math.',
+    githubCta:   'View source code on GitHub →',
+    footerReleases: 'Releases',
+    footerDev:   'Developed by unknown_BTC_usr · Made with ❤️ in Python and Dart/Flutter with Claude',
+  },
+  es: {
+    htmlLang:    'es',
+    metaDesc:    'LN Markets Trend Tabajara 3.0 Bot — Bot de trading automatizado para LN Markets. Android APK + Linux .deb.',
+    back:        '← BitFood',
+    subtitle:    'Bot de trading automatizado para LN Markets · Trend Tabajara 3.0',
+    warnLabel:   '⚠️ Aviso:',
+    warnBody:    ' el trading con apalancamiento conlleva un riesgo significativo de pérdida de capital. Este bot opera automáticamente con tu dinero. Úsalo bajo tu propio riesgo.',
+    dlLabel:     ['Android', 'Linux (Flutter)', 'Linux (Python)'],
+    dlName:      ['APK', '.deb  amd64', '.deb  all'],
+    dlBtn:       '⬇ Descargar',
+    pills:       ['₿ Solo Bitcoin', '⚡ LN Markets', '🤖 Automático', '🇧🇷 🇺🇸 🇫🇷 3 idiomas', '📊 Trend Tabajara 3.0'],
+    hiwTitle:    'Cómo funciona',
+    hiw: [
+      { title: '1. Descarga e instala',    body: 'Instala el APK en Android o el .deb en Linux. Sin tienda de apps — directo desde GitHub.' },
+      { title: '2. Configura tu API Key',  body: 'Crea una cuenta en LN Markets y genera tu API Key. Pega tus credenciales en la app.' },
+      { title: '3. Inicia el bot',         body: 'El bot monitorea el mercado y opera automáticamente siguiendo la Trend Tabajara 3.0.' },
+    ],
+    featTitle:   'Características',
+    features: [
+      { icon: '📈', title: 'Trend Tabajara 3.0', body: 'EMA 9/21 con filtro de confirmación EMA 50. Estrategia de André Machado.' },
+      { icon: '🛡️', title: 'Take-Profit & Stop-Loss', body: 'TP y SL en porcentaje, aplicados directamente en el exchange.' },
+      { icon: '🌐', title: '3 idiomas', body: 'Interfaz en Português, English y Français.' },
+      { icon: '🔔', title: 'Servicio en primer plano', body: 'El bot sigue corriendo en segundo plano en Android aunque uses otras apps.' },
+      { icon: '📡', title: 'Monitoreo en vivo', body: 'Observa tendencia y precio en tiempo real incluso antes de iniciar el bot.' },
+      { icon: '🤝', title: 'Espacios para socios', body: 'Banner de socios rotativo en todas las pantallas. Contacta por Telegram.' },
+    ],
+    stratTitle:  'La estrategia',
+    stratName:   'Trend Tabajara 3.0 — por André Machado',
+    stratBody:   'El bot usa el cruce de EMA 9 y EMA 21 como señal de entrada. La EMA 50 actúa como filtro de confirmación de tendencia. Cuando la EMA 9 cruza por encima de la EMA 21 y ambas están por encima de la EMA 50, el bot abre LONG. En la inversión, cierra y abre SHORT. Sin opiniones — matemática pura.',
+    githubCta:   'Ver código fuente en GitHub →',
+    footerReleases: 'Releases',
+    footerDev:   'Desarrollado por unknown_BTC_usr · Hecho con ❤️ en Python y Dart/Flutter con Claude',
+  },
+  fr: {
+    htmlLang:    'fr',
+    metaDesc:    'LN Markets Trend Tabajara 3.0 Bot — Bot de trading automatisé pour LN Markets. Android APK + Linux .deb.',
+    back:        '← BitFood',
+    subtitle:    'Bot de trading automatisé pour LN Markets · Trend Tabajara 3.0',
+    warnLabel:   '⚠️ Avertissement :',
+    warnBody:    " le trading avec levier implique un risque significatif de perte en capital. Ce bot opère automatiquement avec votre argent. Utilisez à vos propres risques.",
+    dlLabel:     ['Android', 'Linux (Flutter)', 'Linux (Python)'],
+    dlName:      ['APK', '.deb  amd64', '.deb  all'],
+    dlBtn:       '⬇ Télécharger',
+    pills:       ['₿ Bitcoin uniquement', '⚡ LN Markets', '🤖 Automatisé', '🇧🇷 🇺🇸 🇫🇷 3 langues', '📊 Trend Tabajara 3.0'],
+    hiwTitle:    'Comment ça marche',
+    hiw: [
+      { title: '1. Téléchargez et installez', body: "Installez l'APK sur Android ou le .deb sur Linux. Sans boutique d'apps — directement depuis GitHub." },
+      { title: '2. Configurez votre API Key', body: 'Créez un compte sur LN Markets et générez votre API Key. Collez vos identifiants dans l\'app.' },
+      { title: '3. Démarrez le bot',          body: 'Le bot surveille le marché et trade automatiquement en suivant la Trend Tabajara 3.0.' },
+    ],
+    featTitle:   'Fonctionnalités',
+    features: [
+      { icon: '📈', title: 'Trend Tabajara 3.0', body: 'Croisement EMA 9/21 avec filtre de confirmation EMA 50. Stratégie d\'André Machado.' },
+      { icon: '🛡️', title: 'Take-Profit & Stop-Loss', body: 'TP et SL en pourcentage, appliqués directement sur l\'exchange.' },
+      { icon: '🌐', title: '3 langues', body: 'Interface en Português, English et Français.' },
+      { icon: '🔔', title: 'Service de premier plan', body: 'Le bot continue de fonctionner en arrière-plan sur Android même en utilisant d\'autres apps.' },
+      { icon: '📡', title: 'Surveillance en direct', body: 'Suivez la tendance et le prix en temps réel avant même de démarrer le bot.' },
+      { icon: '🤝', title: 'Espaces partenaires', body: 'Bannière partenaire rotative sur chaque écran. Contactez via Telegram.' },
+    ],
+    stratTitle:  'La stratégie',
+    stratName:   'Trend Tabajara 3.0 — par André Machado',
+    stratBody:   'Le bot utilise le croisement EMA 9 et EMA 21 comme signal d\'entrée. L\'EMA 50 sert de filtre de confirmation de tendance. Quand l\'EMA 9 croise au-dessus de l\'EMA 21 et que les deux sont au-dessus de l\'EMA 50, le bot ouvre un LONG. À l\'inversion, il ferme et ouvre un SHORT. Aucune opinion — pur calcul.',
+    githubCta:   'Voir le code source sur GitHub →',
+    footerReleases: 'Releases',
+    footerDev:   'Développé par unknown_BTC_usr · Fait avec ❤️ en Python et Dart/Flutter avec Claude',
+  },
+  gn: {
+    htmlLang:    'gn',
+    metaDesc:    "LN Markets Trend Tabajara 3.0 Bot — Mba'eporurã trading ijehegui LN Markets-pe.",
+    back:        '← BitFood',
+    subtitle:    "Mba'eporurã trading ijehegui LN Markets-pe · Trend Tabajara 3.0",
+    warnLabel:   '⚠️ Ñemomarandu:',
+    warnBody:    " trading oĩ apañuãi guasúva viru reikóvagui. Ko mba'eporurã ojapo ijehegui ne virundive. Eiporu ne mba'e rehegua añoite.",
+    dlLabel:     ['Android', 'Linux (Flutter)', 'Linux (Python)'],
+    dlName:      ['APK', '.deb  amd64', '.deb  all'],
+    dlBtn:       "⬇ Emono'ã",
+    pills:       ['₿ Bitcoin añoite', '⚡ LN Markets', '🤖 Ijehegui', '🇧🇷 🇺🇸 🇫🇷 3 ñe\'ẽ', '📊 Trend Tabajara 3.0'],
+    hiwTitle:    "Mba'éichapa oĩ",
+    hiw: [
+      { title: "1. Emono'ã ha eiporu",    body: "Eiporu APK Android-pe térã .deb Linux-pe. Tenda rehegua'ỹre — GitHub-gui añoite." },
+      { title: '2. Embojuaju API Key',    body: 'Emoheñói cuenta LN Markets-pe ha embojuaju API Key. Eiporu ne credenciales app-pe.' },
+      { title: '3. Embopyrũ mba\'eporurã', body: "Mba'eporurã ohecháva mercado ha ojapo ijehegui Trend Tabajara 3.0 rehe." },
+    ],
+    featTitle:   "Mba'eporu",
+    features: [
+      { icon: '📈', title: 'Trend Tabajara 3.0', body: 'EMA 9/21 EMA 50 ndive. André Machado mba\'e.' },
+      { icon: '🛡️', title: 'Take-Profit & Stop-Loss', body: 'TP ha SL porcentaje rehegua, oĩporã exchange-pe.' },
+      { icon: '🌐', title: '3 ñe\'ẽ', body: 'Português, English ha Français.' },
+      { icon: '🔔', title: 'Mba\'apohára oĩva', body: "Mba'eporurã ohasáva Android-pe ambue mba'eporurã eiporu hague." },
+      { icon: '📡', title: "Ohecháva ijehegui", body: "Ehecha tendencia ha kaipy mba'eporurã rembotypyrã mboyve." },
+      { icon: '🤝', title: 'Jejapose rendápe', body: 'Banner oĩva tela oĩvape. Telegram-pe eroñe\'ẽ.' },
+    ],
+    stratTitle:  "Mba'apohára",
+    stratName:   'Trend Tabajara 3.0 — André Machado rehegua',
+    stratBody:   "Mba'eporurã oiporu EMA 9 ha EMA 21 ñembojoja señal rehegua. EMA 50 ojapo confirmación. EMA 9 ohasáva yvate EMA 21-gui ha mokõive yvate EMA 50-gui, mba'eporurã oheka LONG. Ñembosaĩ rire, oĩ ha oheka SHORT.",
+    githubCta:   'Ehecha código GitHub-pe →',
+    footerReleases: 'Releases',
+    footerDev:   'Ojejapova unknown_BTC_usr · Ojejapova ❤️ ndive Python ha Dart/Flutter Claude ndive',
+  },
+};
+
+// ── Apply translations ────────────────────────────────────────────────────────
+function applyLang(lang) {
+  const t = T[lang] || T.pt;
+
+  document.documentElement.lang = t.htmlLang;
+  document.querySelector('meta[name="description"]').content = t.metaDesc;
+
+  document.getElementById('t-back').textContent        = t.back;
+  document.getElementById('t-subtitle').textContent    = t.subtitle;
+  document.getElementById('t-warn-label').textContent  = t.warnLabel;
+  document.getElementById('t-warn-body').textContent   = t.warnBody;
+
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('t-dl-label-' + i).textContent = t.dlLabel[i];
+    document.getElementById('t-dl-name-'  + i).textContent = t.dlName[i];
+    document.getElementById('t-dl-btn-'   + i).textContent = t.dlBtn;
+  }
+
+  document.getElementById('pills-row').innerHTML =
+    t.pills.map(p => `<span class="pill">${p}</span>`).join('');
+
+  document.getElementById('t-hiw-title').textContent = t.hiwTitle;
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('t-hiw' + i + '-title').textContent = t.hiw[i].title;
+    document.getElementById('t-hiw' + i + '-body').textContent  = t.hiw[i].body;
+  }
+
+  document.getElementById('t-feat-title').textContent = t.featTitle;
+  document.getElementById('features-grid').innerHTML = t.features.map(f => `
+    <div class="feature-card">
+      <div class="icon">${f.icon}</div>
+      <h4>${f.title}</h4>
+      <p>${f.body}</p>
+    </div>
+  `).join('');
+
+  document.getElementById('t-strat-title').textContent = t.stratTitle;
+  document.getElementById('t-strat-name').textContent  = t.stratName;
+  document.getElementById('t-strat-body').textContent  = t.stratBody;
+
+  document.getElementById('t-github-cta').textContent         = t.githubCta;
+  document.getElementById('t-footer-releases').textContent    = t.footerReleases;
+  document.getElementById('t-footer-dev').textContent         = t.footerDev;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  localStorage.setItem('lnbot-lang', lang);
+}
+
+// ── Language detection ────────────────────────────────────────────────────────
+function detectLang() {
+  const saved = localStorage.getItem('lnbot-lang') || localStorage.getItem('bitfood-lang');
+  if (saved && T[saved]) return saved;
+  const b = (navigator.language || '').toLowerCase();
+  if (b.startsWith('pt'))  return 'pt';
+  if (b.startsWith('fr'))  return 'fr';
+  if (b === 'gn' || b.startsWith('gn-')) return 'gn';
+  if (b.startsWith('es'))  return 'es';
+  return 'en';
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+});
+
+applyLang(detectLang());
+</script>
+
+</body>
+</html>
