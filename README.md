@@ -105,6 +105,25 @@ Repita para `apps/restaurant` e `apps/rider`.
 
 Playground disponível em `http://localhost:4000/graphql`
 
+## Downloads
+
+### BitFood
+
+| App | Download | Versão |
+|-----|----------|--------|
+| 🛒 App do Cliente | [bitfood-customer-v1.4.1.apk](https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.4.1/bitfood-customer-v1.4.1.apk) | v1.4.1 |
+| 🍽️ App do Restaurante | [bitfood-restaurant-v1.4.0.apk](https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.4.0/bitfood-restaurant-v1.4.0.apk) | v1.4.0 |
+| 🏍️ App do Entregador | [bitfood-rider-v1.4.0.apk](https://github.com/Unknown-brazilian/bitfood-from-zero/releases/download/v1.4.0/bitfood-rider-v1.4.0.apk) | v1.4.0 |
+
+### Outros apps
+
+| App | Download | Descrição |
+|-----|----------|-----------|
+| ₿ SatsCalc | [satscalc-v1.0.0.apk](https://github.com/Unknown-brazilian/satscalc/releases/download/v1.0.0/satscalc-v1.0.0.apk) | Calculadora de satoshis líquidos — compara 14 exchanges, widget onchain, 6 idiomas |
+| 🏃 Borderless Freedom | [borderless-freedom-v1.1.0.apk](https://github.com/Unknown-brazilian/borderless-freedom/releases/download/v1.1.0/borderless-freedom-v1.1.0.apk) | Runner Bitcoin estilo Metal Slug — 57 fases, 18 bosses |
+| 🎮 Borderless Freedom RPG | [borderless-freedom-rpg-v0.2.0.apk](https://github.com/Unknown-brazilian/borderless-freedom-rpg/releases/download/v0.2.0/borderless-freedom-rpg-v0.2.0.apk) | RPG turn-based estilo Game Boy — seed BIP-39, eventos crypto |
+| ⚡ LN Markets Bot | [lnmarkets-bot.html](https://bitfood.app/lnmarkets-bot.html) | Bot de trading automatizado — Trend Tabajara 3.0, Android + Linux |
+
 ## Licença
 
 MIT
