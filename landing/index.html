@@ -891,19 +891,12 @@
   <!-- Status widget -->
   <div class="status-widget">
     <div class="status-title" id="t-status-title"></div>
-    <div class="status-row">
-      <div class="status-item">
-        <div class="status-dot loading" id="dot-api"></div>
-        <span id="t-status-api"></span>
-      </div>
-      <div class="status-item">
-        <div class="status-dot loading" id="dot-db"></div>
-        <span id="t-status-db"></span>
-      </div>
-      <div class="status-item">
-        <div class="status-dot loading" id="dot-btcpay"></div>
-        <span>BTCPay</span>
-      </div>
+    <iframe src="https://status.bitfood.app/" title="BitFood — Status"
+            loading="lazy"
+            style="width:100%;max-width:900px;height:720px;border:1px solid #2c2c2c;border-radius:14px;background:#121212;display:block;margin:0 auto;"></iframe>
+    <div style="text-align:center;margin-top:8px;">
+      <a href="https://status.bitfood.app/" target="_blank" rel="noopener"
+         style="color:var(--orange,#FF6900);font-size:13px;text-decoration:none;">abrir painel completo ↗</a>
     </div>
   </div>
 
@@ -1496,31 +1489,8 @@ setInterval(() => {
   msgs[cur].classList.add('active');
 }, 3400);
 
-// ── Status widget ─────────────────────────────────────────────────────────────
-const STATUS_URL = 'https://api.bitfood.app/health';
-const POLL_MS    = 30000;
-
-function setDot(id, state) {
-  const el = document.getElementById(id);
-  if (el) el.className = 'status-dot ' + state;
-}
-
-async function fetchStatus() {
-  try {
-    const res  = await fetch(STATUS_URL, { cache: 'no-store' });
-    const data = await res.json();
-    setDot('dot-api',    data.api     === 'ok' ? 'ok' : 'err');
-    setDot('dot-db',     data.mongodb === 'ok' ? 'ok' : 'err');
-    setDot('dot-btcpay', data.btcpay  === 'ok' ? 'ok' : 'err');
-  } catch (_) {
-    setDot('dot-api',    'err');
-    setDot('dot-db',     'err');
-    setDot('dot-btcpay', 'err');
-  }
-}
-
-fetchStatus();
-setInterval(fetchStatus, POLL_MS);
+// ── Status ────────────────────────────────────────────────────────────────────
+// O painel de status agora é o iframe de https://status.bitfood.app/ (se atualiza sozinho).
 </script>
 
 </body>
