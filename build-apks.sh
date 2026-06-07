@@ -2,7 +2,7 @@
 # Builda os 3 APKs release (assinados) e copia pra release/bitfood-<app>-v<VER>.apk
 set -e
 ROOT="$HOME/Desktop/bitfood"
-VER="1.4.3"
+VER="1.4.4"
 GOOGLE_WEB_ID="$(cat "$ROOT/.google-web-client-id" 2>/dev/null || echo '')"
 mkdir -p "$ROOT/release"
 
