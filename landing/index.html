@@ -1380,10 +1380,8 @@ function applyLang(lang) {
     el.style.display = el.dataset.forLang === lang ? '' : 'none';
   });
 
-  // Status widget
+  // Status widget (título; os dots viraram o iframe do painel de status)
   document.getElementById('t-status-title').textContent = t.statusTitle;
-  document.getElementById('t-status-api').textContent   = t.statusApi;
-  document.getElementById('t-status-db').textContent    = t.statusDb;
 
   // Pills
   const pillsRow = document.getElementById('pills-row');
