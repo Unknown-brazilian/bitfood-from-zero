@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
@@ -19,7 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
   bool _loading = false;
+  bool _googleLoading = false;
   bool _obscure = true;
   Object? _error;
   bool _isRegister = false;
@@ -28,6 +31,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final _captchaCtrl = TextEditingController();
   int _captchaA = 0, _captchaB = 0;
   String? _captchaError;
+
+  static const String _googleServerClientId =
+      String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+
+  // Validação de senha forte: mín. 8, ≥1 número, ≥1 maiúscula, ≥1 especial.
+  String? _validateStrongPassword(String? v) {
+    final value = v ?? '';
+    if (value.length < 8) return 'A senha deve ter no mínimo 8 caracteres';
+    if (!RegExp(r'[0-9]').hasMatch(value)) return 'Inclua ao menos um número';
+    if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Inclua ao menos uma letra maiúscula';
+    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(value)) {
+      return 'Inclua ao menos um caractere especial';
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -83,17 +101,62 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result.hasException) throw result.exception!;
       final data = _isRegister ? result.data!['register'] : result.data!['login'];
-      final token = data?['token'] as String?;
-      if (token == null) throw Exception('Token não recebido do servidor');
-      await AuthService.saveToken(token);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_name', (data['name'] as String?) ?? '');
-      await prefs.setString('user_id', (data['userId'] as String?) ?? '');
+      await _saveSession(data);
       widget.onLoginSuccess();
     } catch (e) {
       setState(() => _error = e);
     } finally {
       setState(() { _loading = false; });
+    }
+  }
+
+  Future<void> _saveSession(Map<String, dynamic>? data) async {
+    final token = data?['token'] as String?;
+    if (token == null) throw Exception('Token não recebido do servidor');
+    await AuthService.saveToken(token);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_name', (data!['name'] as String?) ?? '');
+    await prefs.setString('user_id', (data['userId'] as String?) ?? '');
+  }
+
+  Future<void> _googleSignIn() async {
+    setState(() { _googleLoading = true; _error = null; });
+    try {
+      final googleSignIn = GoogleSignIn(
+        serverClientId: _googleServerClientId.isEmpty ? null : _googleServerClientId,
+        scopes: const ['email'],
+      );
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        // Usuário cancelou o fluxo.
+        setState(() => _googleLoading = false);
+        return;
+      }
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null) throw Exception('idToken não recebido do Google');
+
+      final client = GraphQLProvider.of(context).value;
+      final result = await client.mutate(MutationOptions(
+        document: gql(googleAuthMutation),
+        variables: {
+          'idToken': idToken,
+          'userType': 'customer',
+          'name': account.displayName,
+        },
+      ));
+      if (result.hasException) throw result.exception!;
+      await _saveSession(result.data!['googleAuth'] as Map<String, dynamic>?);
+      if (mounted) widget.onLoginSuccess();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Login Google ainda não configurado'),
+          backgroundColor: AppColors.primary,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
     }
   }
 
@@ -192,11 +255,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailCtrl,
                         decoration: InputDecoration(
-                          labelText: _isRegister ? 'E-mail (opcional)' : 'E-mail ou telefone',
+                          labelText: _isRegister ? 'E-mail' : 'E-mail ou telefone',
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (v) => !_isRegister && (v == null || v.trim().isEmpty)
-                            ? 'Digite seu e-mail ou telefone'
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? (_isRegister ? 'Digite seu e-mail' : 'Digite seu e-mail ou telefone')
                             : null,
                       ),
                       const SizedBox(height: 12),
@@ -211,8 +274,38 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: () => setState(() => _obscure = !_obscure),
                           ),
                         ),
-                        validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                        validator: (v) => _isRegister
+                            ? _validateStrongPassword(v)
+                            : (v!.isEmpty ? 'Digite sua senha' : null),
                       ),
+
+                      if (_isRegister) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: const Text(
+                            'A senha deve ter no mínimo 8 caracteres, incluindo ao menos '
+                            'uma letra maiúscula, um número e um caractere especial.',
+                            style: TextStyle(fontSize: 12, color: AppColors.textGrey),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _confirmPasswordCtrl,
+                          obscureText: _obscure,
+                          decoration: const InputDecoration(labelText: 'Confirmar senha'),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Confirme sua senha';
+                            if (v != _passwordCtrl.text) return 'As senhas não coincidem';
+                            return null;
+                          },
+                        ),
+                      ],
                       const SizedBox(height: 24),
 
                       SizedBox(
@@ -222,6 +315,34 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: _loading
                               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                               : Text(_isRegister ? 'Criar conta' : 'Entrar'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: const [
+                          Expanded(child: Divider(color: AppColors.divider)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text('ou', style: TextStyle(color: AppColors.textGrey, fontSize: 12)),
+                          ),
+                          Expanded(child: Divider(color: AppColors.divider)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _googleLoading ? null : _googleSignIn,
+                          icon: _googleLoading
+                              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))
+                              : const Icon(Icons.login, color: AppColors.textDark, size: 18),
+                          label: const Text('Entrar com Google', style: TextStyle(color: AppColors.textDark)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.divider),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
                         ),
                       ),
                     ],

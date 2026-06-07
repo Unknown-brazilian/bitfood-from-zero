@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
@@ -21,7 +23,13 @@ class ProfileScreen extends StatelessWidget {
           options: QueryOptions(document: gql(meUserQuery), fetchPolicy: FetchPolicy.cacheAndNetwork),
           builder: (meResult, {fetchMore, refetch}) {
             final me = meResult.data?['me'];
-            return _ProfileBody(restaurant: r, me: me, refetch: restaurantRefetch, onLogout: onLogout);
+            return _ProfileBody(
+              restaurant: r,
+              me: me,
+              refetch: restaurantRefetch,
+              meRefetch: refetch,
+              onLogout: onLogout,
+            );
           },
         );
       },
@@ -33,8 +41,9 @@ class _ProfileBody extends StatefulWidget {
   final Map<String, dynamic>? restaurant;
   final Map<String, dynamic>? me;
   final Refetch? refetch;
+  final Refetch? meRefetch;
   final VoidCallback onLogout;
-  const _ProfileBody({this.restaurant, this.me, this.refetch, required this.onLogout});
+  const _ProfileBody({this.restaurant, this.me, this.refetch, this.meRefetch, required this.onLogout});
 
   @override
   State<_ProfileBody> createState() => _ProfileBodyState();
@@ -47,6 +56,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
   late final TextEditingController _logoCtrl;
   late final TextEditingController _lightningCtrl;
   bool _loading = false;
+  bool _uploadingPicture = false;
   String? _error;
   String? _success;
 
@@ -124,6 +134,49 @@ class _ProfileBodyState extends State<_ProfileBody> {
     );
     ctrl.dispose();
     return confirmed ?? false;
+  }
+
+  Future<void> _pickProfilePicture() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        imageQuality: 70,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      final ext = picked.name.split('.').last.toLowerCase();
+      final mime = (ext == 'png') ? 'image/png' : 'image/jpeg';
+      final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+
+      setState(() { _uploadingPicture = true; _error = null; _success = null; });
+      if (!mounted) return;
+      final client = GraphQLProvider.of(context).value;
+      final result = await client.mutate(MutationOptions(
+        document: gql(updateProfilePictureMutation),
+        variables: {'profilePicture': dataUrl},
+      ));
+      if (result.hasException) throw result.exception!;
+      widget.meRefetch?.call();
+      setState(() { _uploadingPicture = false; _success = 'Foto de perfil atualizada!'; });
+    } catch (e) {
+      setState(() {
+        _uploadingPicture = false;
+        _error = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
+      });
+    }
+  }
+
+  ImageProvider? _profileImageProvider() {
+    final pic = widget.me?['profilePicture'] as String?;
+    if (pic == null || pic.isEmpty) return null;
+    try {
+      final base64Part = pic.contains(',') ? pic.split(',').last : pic;
+      return MemoryImage(base64Decode(base64Part));
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _save() async {
@@ -253,14 +306,43 @@ class _ProfileBodyState extends State<_ProfileBody> {
             ),
             child: Column(
               children: [
-                Container(
-                  width: 72, height: 72,
-                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                  child: Center(
-                    child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : 'R',
-                      style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700),
-                    ),
+                GestureDetector(
+                  onTap: _uploadingPicture ? null : _pickProfilePicture,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 72, height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          image: _profileImageProvider() != null
+                              ? DecorationImage(image: _profileImageProvider()!, fit: BoxFit.cover)
+                              : null,
+                        ),
+                        child: _profileImageProvider() == null
+                            ? Center(
+                                child: Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'R',
+                                  style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700),
+                                ),
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        right: 0, bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardWhite,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: _uploadingPicture
+                              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                              : const Icon(Icons.camera_alt, size: 14, color: AppColors.primary),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 10),

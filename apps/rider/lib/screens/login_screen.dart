@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
@@ -17,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl   = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
   final _nameCtrl    = TextEditingController();
   final _phoneCtrl   = TextEditingController();
 
@@ -45,18 +47,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    for (final c in [_emailCtrl, _passwordCtrl, _nameCtrl, _phoneCtrl, _captchaCtrl]) {
+    for (final c in [_emailCtrl, _passwordCtrl, _confirmPasswordCtrl, _nameCtrl, _phoneCtrl, _captchaCtrl]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  bool _isStrongPassword(String p) {
+    return p.length >= 8 &&
+        p.contains(RegExp(r'[0-9]')) &&
+        p.contains(RegExp(r'[A-Z]')) &&
+        p.contains(RegExp(r'[^A-Za-z0-9]'));
   }
 
   String? _validate() {
     if (_isRegister) {
       if (_nameCtrl.text.trim().isEmpty)   return 'Digite seu nome completo';
       if (_emailCtrl.text.trim().isEmpty)  return 'Digite seu e-mail';
-      if (!_emailCtrl.text.contains('@'))  return 'E-mail inválido';
-      if (_passwordCtrl.text.length < 6)   return 'A senha precisa ter pelo menos 6 caracteres';
+      if (_passwordCtrl.text.isEmpty)      return 'Digite uma senha';
+      if (!_isStrongPassword(_passwordCtrl.text)) {
+        return 'Senha fraca: use no mínimo 8 caracteres, com pelo menos 1 número, 1 letra maiúscula e 1 caractere especial.';
+      }
+      if (_confirmPasswordCtrl.text != _passwordCtrl.text) {
+        return 'As senhas não conferem. Confirme a mesma senha.';
+      }
     } else {
       if (_emailCtrl.text.trim().isEmpty)  return 'Digite seu e-mail';
       if (_passwordCtrl.text.isEmpty)      return 'Digite sua senha';
@@ -120,6 +134,68 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _googleSignIn() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      const serverClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+      final googleSignIn = GoogleSignIn(
+        serverClientId: serverClientId.isEmpty ? null : serverClientId,
+        scopes: const ['email'],
+      );
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        setState(() => _loading = false);
+        return;
+      }
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null) throw Exception('Não foi possível obter o token do Google');
+
+      final client = GraphQLProvider.of(context).value;
+      final result = await client.mutate(MutationOptions(
+        document: gql(googleAuthMutation),
+        variables: {
+          'idToken': idToken,
+          'userType': 'rider',
+          'name': account.displayName,
+        },
+      ));
+      if (result.hasException) throw result.exception!;
+      final data = result.data!['googleAuth'];
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', data['token']);
+      await prefs.setString('rider_name', data['name'] ?? '');
+      widget.onLogin(data['token']);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Google ainda não configurado')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Widget _passwordRule(String label, bool ok) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(ok ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 15, color: ok ? AppColors.success : AppColors.textLight),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(
+            fontSize: 12,
+            color: ok ? AppColors.success : AppColors.textGrey,
+          )),
+        ],
+      ),
+    );
   }
 
   Widget _vehicleCard(String type, String label, IconData icon) {
@@ -205,6 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _passwordCtrl,
                   obscureText: _obscure,
+                  onChanged: _isRegister ? (_) => setState(() {}) : null,
                   decoration: InputDecoration(
                     labelText: 'Senha',
                     filled: true, fillColor: Colors.white, border: const OutlineInputBorder(),
@@ -214,6 +291,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+
+                if (_isRegister) ...[
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _passwordRule('Mínimo de 8 caracteres', _passwordCtrl.text.length >= 8),
+                        _passwordRule('Pelo menos 1 número', _passwordCtrl.text.contains(RegExp(r'[0-9]'))),
+                        _passwordRule('Pelo menos 1 letra maiúscula', _passwordCtrl.text.contains(RegExp(r'[A-Z]'))),
+                        _passwordRule('Pelo menos 1 caractere especial', _passwordCtrl.text.contains(RegExp(r'[^A-Za-z0-9]'))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _confirmPasswordCtrl,
+                    obscureText: _obscure,
+                    decoration: const InputDecoration(
+                      labelText: 'Confirmar senha',
+                      filled: true, fillColor: Colors.white, border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
 
                 if (_isRegister) ...[
                   const SizedBox(height: 16),
@@ -267,6 +369,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   ),
                 ),
+                if (!_isRegister) ...[
+                  const SizedBox(height: 16),
+                  Row(children: const [
+                    Expanded(child: Divider(color: AppColors.divider)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text('ou', style: TextStyle(color: AppColors.textGrey, fontSize: 13)),
+                    ),
+                    Expanded(child: Divider(color: AppColors.divider)),
+                  ]),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _loading ? null : _googleSignIn,
+                      icon: const Icon(Icons.account_circle, color: AppColors.primary),
+                      label: const Text('Entrar com Google',
+                          style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.divider),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => setState(() { _isRegister = !_isRegister; _error = null; }),

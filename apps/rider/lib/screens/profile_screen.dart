@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../queries.dart';
@@ -37,6 +39,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
   late final TextEditingController _lightningCtrl;
   String _vehicleType = 'BICYCLE';
   bool _loading = false;
+  bool _uploadingPhoto = false;
   bool _savingLightning = false;
   bool _lightningSaved = false;
   bool _savingHomeAddress = false;
@@ -136,6 +139,17 @@ class _ProfileBodyState extends State<_ProfileBody> {
     }
   }
 
+  DecorationImage? _profileImage() {
+    final pic = widget.me?['profilePicture'] as String?;
+    if (pic == null || pic.isEmpty) return null;
+    try {
+      final base64Part = pic.contains(',') ? pic.split(',').last : pic;
+      return DecorationImage(image: MemoryImage(base64Decode(base64Part)), fit: BoxFit.cover);
+    } catch (_) {
+      return null;
+    }
+  }
+
   bool get _nameLocked => widget.me?['nameLocked'] == true;
   bool get _lightningLocked => widget.me?['lightningAddressLocked'] == true;
 
@@ -158,6 +172,36 @@ class _ProfileBodyState extends State<_ProfileBody> {
       setState(() {
         _homeAddressError = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
         _savingHomeAddress = false;
+      });
+    }
+  }
+
+  Future<void> _pickProfilePicture() async {
+    if (_uploadingPhoto) return;
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        imageQuality: 70,
+      );
+      if (picked == null) return;
+      setState(() { _uploadingPhoto = true; _error = null; _success = null; });
+      final bytes = await picked.readAsBytes();
+      final ext = picked.name.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
+      final dataUrl = 'data:image/$ext;base64,${base64Encode(bytes)}';
+
+      final client = GraphQLProvider.of(context).value;
+      final result = await client.mutate(MutationOptions(
+        document: gql(updateProfileMutation),
+        variables: { 'profilePicture': dataUrl },
+      ));
+      if (result.hasException) throw result.exception!;
+      widget.refetch?.call();
+      setState(() { _uploadingPhoto = false; _success = 'Foto atualizada!'; });
+    } catch (e) {
+      setState(() {
+        _uploadingPhoto = false;
+        _error = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
       });
     }
   }
@@ -239,14 +283,42 @@ class _ProfileBodyState extends State<_ProfileBody> {
             ),
             child: Column(
               children: [
-                Container(
-                  width: 72, height: 72,
-                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                  child: Center(
-                    child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : 'E',
-                      style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700),
-                    ),
+                GestureDetector(
+                  onTap: _uploadingPhoto ? null : _pickProfilePicture,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 72, height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          image: _profileImage(),
+                        ),
+                        child: _profileImage() == null
+                            ? Center(
+                                child: Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'E',
+                                  style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700),
+                                ),
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        right: 0, bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardWhite,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: _uploadingPhoto
+                              ? const SizedBox(width: 14, height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                              : const Icon(Icons.camera_alt, size: 14, color: AppColors.primary),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 10),

@@ -14,6 +14,30 @@ const registerRestaurantMutation = r'''
   }
 ''';
 
+const googleAuthMutation = r'''
+  mutation GoogleAuth($idToken: String!, $userType: String!, $name: String) {
+    googleAuth(idToken: $idToken, userType: $userType, name: $name) {
+      token userId userType name email phone restaurantId
+    }
+  }
+''';
+
+const meProfilePictureQuery = r'''
+  query MeProfilePicture {
+    me {
+      _id profilePicture
+    }
+  }
+''';
+
+const updateProfilePictureMutation = r'''
+  mutation UpdateProfile($profilePicture: String) {
+    updateProfile(profilePicture: $profilePicture) {
+      _id profilePicture
+    }
+  }
+''';
+
 const meRestaurantQuery = r'''
   query MyRestaurantProfile {
     myRestaurant {
@@ -25,7 +49,7 @@ const meRestaurantQuery = r'''
 const meUserQuery = r'''
   query MeUser {
     me {
-      _id tier reputationScore completedOrders totalOrders
+      _id tier reputationScore completedOrders totalOrders profilePicture
     }
   }
 ''';

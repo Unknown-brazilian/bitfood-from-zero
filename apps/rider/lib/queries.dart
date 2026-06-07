@@ -14,6 +14,14 @@ const registerRiderMutation = r'''
   }
 ''';
 
+const googleAuthMutation = r'''
+  mutation GoogleAuth($idToken: String!, $userType: String!, $name: String) {
+    googleAuth(idToken: $idToken, userType: $userType, name: $name) {
+      token userId userType name email phone
+    }
+  }
+''';
+
 const availableOrdersQuery = r'''
   query AvailableOrders {
     availableOrders {
@@ -95,16 +103,16 @@ const meQuery = r'''
   query Me {
     me {
       _id name phone vehicleType nameLocked available lightningAddress lightningAddressLocked zone { _id }
-      tier reputationScore completedOrders totalOrders escrowSats
+      tier reputationScore completedOrders totalOrders escrowSats profilePicture
       homeAddress homeLocation { lat lng } towardHomeLastUsed
     }
   }
 ''';
 
 const updateProfileMutation = r'''
-  mutation UpdateProfile($name: String, $vehicleType: String) {
-    updateProfile(name: $name, vehicleType: $vehicleType) {
-      _id name vehicleType nameLocked
+  mutation UpdateProfile($name: String, $vehicleType: String, $profilePicture: String) {
+    updateProfile(name: $name, vehicleType: $vehicleType, profilePicture: $profilePicture) {
+      _id name vehicleType nameLocked profilePicture
     }
   }
 ''';

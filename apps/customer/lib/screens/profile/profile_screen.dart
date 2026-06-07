@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
@@ -19,6 +21,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String? _name;
+  bool _uploadingPhoto = false;
 
   @override
   void initState() {
@@ -98,12 +101,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       builder: (result, {fetchMore, refetch}) {
         final me = result.data?['me'];
-        return _buildBody(context, me);
+        return _buildBody(context, me, refetch);
       },
     );
   }
 
-  Widget _buildBody(BuildContext context, Map<String, dynamic>? me) {
+  Future<void> _pickProfilePicture(Refetch? refetch) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      imageQuality: 70,
+    );
+    if (picked == null) return;
+
+    setState(() => _uploadingPhoto = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      final dataUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      final client = GraphQLProvider.of(context).value;
+      final result = await client.mutate(MutationOptions(
+        document: gql(updateProfileMutation),
+        variables: {'profilePicture': dataUrl},
+      ));
+      if (result.hasException) throw result.exception!;
+      refetch?.call();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString().replaceAll(RegExp(r'GraphQLError\(.*?\):\s?'), '')),
+          backgroundColor: AppColors.primary,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
+  Widget _buildAvatarContent(Map<String, dynamic>? me) {
+    if (_uploadingPhoto) {
+      return const Center(
+        child: SizedBox(
+          width: 20, height: 20,
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        ),
+      );
+    }
+    final picture = me?['profilePicture'] as String?;
+    if (picture != null && picture.contains('base64,')) {
+      try {
+        final bytes = base64Decode(picture.split('base64,').last);
+        return Image.memory(bytes, width: 56, height: 56, fit: BoxFit.cover);
+      } catch (_) {}
+    }
+    return Center(
+      child: Text(
+        (_name?.isNotEmpty == true ? _name![0].toUpperCase() : 'U'),
+        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, Map<String, dynamic>? me, Refetch? refetch) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Meu Perfil')),
@@ -116,14 +175,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
             child: Row(
               children: [
-                Container(
-                  width: 56, height: 56,
-                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                  child: Center(
-                    child: Text(
-                      (_name?.isNotEmpty == true ? _name![0].toUpperCase() : 'U'),
-                      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700),
-                    ),
+                GestureDetector(
+                  onTap: _uploadingPhoto ? null : () => _pickProfilePicture(refetch),
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 56, height: 56,
+                        decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                        clipBehavior: Clip.antiAlias,
+                        child: _buildAvatarContent(me),
+                      ),
+                      Positioned(
+                        right: 0, bottom: 0,
+                        child: Container(
+                          width: 20, height: 20,
+                          decoration: BoxDecoration(
+                            color: AppColors.cardWhite,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: const Icon(Icons.camera_alt, size: 12, color: AppColors.textGrey),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 14),

@@ -15,6 +15,22 @@ const String loginMutation = r'''
   }
 ''';
 
+const String googleAuthMutation = r'''
+  mutation GoogleAuth($idToken: String!, $userType: String!, $name: String) {
+    googleAuth(idToken: $idToken, userType: $userType, name: $name) {
+      token userId userType name email phone
+    }
+  }
+''';
+
+const String updateProfileMutation = r'''
+  mutation UpdateProfile($name: String, $vehicleType: String, $profilePicture: String) {
+    updateProfile(name: $name, vehicleType: $vehicleType, profilePicture: $profilePicture) {
+      _id name profilePicture
+    }
+  }
+''';
+
 // ── Restaurants ───────────────────────────────────────────────────────
 const String nearbyRestaurantsQuery = r'''
   query NearbyRestaurants($lat: Float!, $lng: Float!) {
@@ -129,7 +145,7 @@ const String orderDetailQuery = r'''
 const String meQuery = r'''
   query Me {
     me {
-      _id name email phone lightningAddress lightningAddressLocked balanceSats
+      _id name email phone profilePicture lightningAddress lightningAddressLocked balanceSats
       tier reputationScore completedOrders totalOrders
       addresses {
         _id label address street number complement neighborhood postalCode city state country details isDefault

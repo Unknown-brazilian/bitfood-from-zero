@@ -6,6 +6,7 @@ import '../../models/cart_model.dart';
 import '../../services/queries.dart';
 import '../checkout/payment_screen.dart';
 import '../order/order_detail_screen.dart';
+import '../profile/addresses_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -21,6 +22,41 @@ class _CartScreenState extends State<CartScreen> {
   bool _placing = false;
   String? _couponError;
   Map<String, dynamic>? _coupon;
+
+  List<Map<String, dynamic>> _addresses = [];
+  Map<String, dynamic>? _selectedAddress;
+  bool _addressesLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAddresses());
+  }
+
+  Future<void> _loadAddresses() async {
+    final result = await GraphQLProvider.of(context).value.query(QueryOptions(
+          document: gql(meQuery),
+          fetchPolicy: FetchPolicy.cacheAndNetwork,
+        ));
+    if (!mounted) return;
+    final list = ((result.data?['me']?['addresses'] as List?) ?? [])
+        .cast<Map<String, dynamic>>();
+    Map<String, dynamic>? defaultAddr;
+    if (list.isNotEmpty) {
+      defaultAddr = list.firstWhere(
+        (a) => a['isDefault'] == true,
+        orElse: () => list.first,
+      );
+    }
+    setState(() {
+      _addresses = list;
+      _selectedAddress = defaultAddr;
+      _addressesLoaded = true;
+      if (defaultAddr != null) {
+        _addressCtrl.text = (defaultAddr['address'] as String?) ?? '';
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +86,49 @@ class _CartScreenState extends State<CartScreen> {
                 // Address
                 _Section(
                   title: '📍 Endereço de Entrega',
-                  child: TextField(
-                    controller: _addressCtrl,
-                    decoration: const InputDecoration(hintText: 'Digite seu endereço completo'),
-                    maxLines: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_selectedAddress != null) ...[
+                        Text(
+                          (_selectedAddress!['label'] as String?)?.isNotEmpty == true
+                              ? _selectedAddress!['label'] as String
+                              : 'Endereço selecionado',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          (_selectedAddress!['address'] as String?) ?? '',
+                          style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: _changeAddress,
+                          icon: const Icon(Icons.swap_horiz, size: 18, color: AppColors.primary),
+                          label: const Text('Trocar endereço', style: TextStyle(color: AppColors.primary)),
+                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0)),
+                        ),
+                      ] else if (_addressesLoaded) ...[
+                        const Text('Nenhum endereço salvo.', style: TextStyle(fontSize: 13, color: AppColors.textGrey)),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: _addAddress,
+                          icon: const Icon(Icons.add_location_alt_outlined, size: 18, color: AppColors.primary),
+                          label: const Text('Adicionar endereço', style: TextStyle(color: AppColors.primary)),
+                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0)),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _addressCtrl,
+                          decoration: const InputDecoration(hintText: 'Ou digite seu endereço completo'),
+                          maxLines: 2,
+                        ),
+                      ] else
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -160,11 +235,102 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  Future<void> _addAddress() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddressesScreen()));
+    if (mounted) await _loadAddresses();
+  }
+
+  Future<void> _changeAddress() async {
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      backgroundColor: AppColors.cardWhite,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text('Escolha um endereço', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            ),
+            ..._addresses.map((a) => ListTile(
+                  leading: Icon(Icons.location_on, color: a['isDefault'] == true ? AppColors.primary : AppColors.textGrey),
+                  title: Text((a['label'] as String?)?.isNotEmpty == true ? a['label'] as String : 'Endereço',
+                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark, fontSize: 14)),
+                  subtitle: Text((a['address'] as String?) ?? '', style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+                  onTap: () => Navigator.pop(ctx, a),
+                )),
+            ListTile(
+              leading: const Icon(Icons.add_location_alt_outlined, color: AppColors.primary),
+              title: const Text('Adicionar novo endereço', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 14)),
+              onTap: () => Navigator.pop(ctx, null),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (selected != null) {
+      setState(() {
+        _selectedAddress = selected;
+        _addressCtrl.text = (selected['address'] as String?) ?? '';
+      });
+    }
+  }
+
+  Future<bool> _confirmAddress(String address) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmar entrega', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Entregar neste endereço?', style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 8),
+            Text(address, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () { Navigator.pop(ctx, false); _changeAddress(); },
+            child: const Text('Trocar endereço', style: TextStyle(color: AppColors.textGrey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+    return ok == true;
+  }
+
   Future<void> _placeOrder(BuildContext context, CartModel cart) async {
-    if (_addressCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Informe o endereço de entrega'), backgroundColor: AppColors.primary));
+    final address = _selectedAddress != null
+        ? ((_selectedAddress!['address'] as String?) ?? '')
+        : _addressCtrl.text.trim();
+
+    if (address.trim().isEmpty) {
+      if (_addressesLoaded && _addresses.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Adicione um endereço de entrega para continuar'),
+          backgroundColor: AppColors.primary,
+        ));
+        await _addAddress();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Informe o endereço de entrega'), backgroundColor: AppColors.primary));
+      }
       return;
     }
+
+    // Confirma o endereço antes de ir para o pagamento.
+    final confirmed = await _confirmAddress(address);
+    if (!confirmed || !mounted) return;
+
     setState(() => _placing = true);
 
     try {
@@ -180,7 +346,10 @@ class _CartScreenState extends State<CartScreen> {
             if (i.addons.isNotEmpty)
               'addonOptionIds': i.addons.map((a) => a['_id']).whereType<String>().toList(),
           }).toList(),
-          'deliveryAddress': { 'address': _addressCtrl.text.trim() },
+          'deliveryAddress': {
+            'address': address.trim(),
+            if (_selectedAddress?['details'] != null) 'details': _selectedAddress!['details'],
+          },
           if (_instructionsCtrl.text.isNotEmpty) 'specialInstructions': _instructionsCtrl.text.trim(),
           if (_coupon != null) 'couponCode': _couponCtrl.text.trim(),
         },
