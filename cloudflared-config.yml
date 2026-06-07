@@ -1,13 +1,19 @@
 # Substitua TUNNEL_ID pelo ID gerado após: cloudflared tunnel create bitfood
 # Exemplo: cloudflared tunnel list  →  copia o ID
-tunnel: TUNNEL_ID
-credentials-file: /home/unknown/.cloudflared/TUNNEL_ID.json
+tunnel: 912396f1-026f-41a1-834b-23538b30a606
+credentials-file: /home/unknown/.cloudflared/912396f1-026f-41a1-834b-23538b30a606.json
 
 ingress:
+  - hostname: bitfood.app
+    service: http://localhost:3000
+  - hostname: www.bitfood.app
+    service: http://localhost:3000
   - hostname: api.bitfood.app
     service: http://localhost:4000
-    originRequest:
-      noTLSVerify: true
   - hostname: admin.bitfood.app
-    service: http://localhost:3000
+    service: http://localhost:3001
+  - hostname: btcpay.bitfood.app
+    service: http://localhost:8080
+  - hostname: status.bitfood.app
+    service: http://localhost:8090
   - service: http_status:404

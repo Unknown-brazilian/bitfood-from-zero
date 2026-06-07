@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BitFood — Status</title>
+<style>
+  :root { --bg:#121212; --card:#1d1d1d; --border:#2c2c2c; --txt:#eaeaea; --muted:#888;
+          --green:#50A773; --red:#EA1D2C; --orange:#FF6900; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--txt); padding:28px; }
+  .wrap { max-width:880px; margin:0 auto; }
+  h1 { font-size:24px; } h1 span { color:var(--orange); }
+  .ts { color:var(--muted); font-size:12px; margin:4px 0 22px; }
+  .banner { padding:14px 18px; border-radius:12px; font-weight:700; margin-bottom:22px; }
+  .banner.ok { background:rgba(80,167,115,.15); color:var(--green); border:1px solid var(--green); }
+  .banner.wait { background:rgba(255,105,0,.12); color:var(--orange); border:1px solid var(--orange); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:18px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  .svc { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#191919; border:1px solid var(--border); border-radius:9px; }
+  .dot { width:11px; height:11px; border-radius:50%; flex:none; }
+  .dot.up { background:var(--green); box-shadow:0 0 8px var(--green); }
+  .dot.down { background:var(--red); }
+  .svc .name { font-weight:600; font-size:14px; } .svc .detail { color:var(--muted); font-size:12px; }
+  .bar { height:26px; background:#191919; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
+  .bar .fill { height:100%; background:linear-gradient(90deg,var(--orange),var(--green)); transition:width .6s; }
+  .bar .label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .meta { display:flex; gap:24px; margin-top:12px; color:var(--muted); font-size:13px; flex-wrap:wrap; }
+  .meta b { color:var(--txt); }
+  ul.pending { list-style:none; } ul.pending li { padding:9px 0; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+  ul.pending li:last-child { border:none; } ul.pending li::before { content:"⏳"; }
+  .lnd { font-size:14px; } .lnd b { color:var(--orange); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>BitFood <span>⚡</span> — Status</h1>
+  <div class="ts" id="ts">carregando…</div>
+
+  <div class="banner wait" id="banner">…</div>
+
+  <div class="card" id="sync-card">
+    <h2>Sincronização do nó Bitcoin (bitcoind)</h2>
+    <div class="bar"><div class="fill" id="fill" style="width:0%"></div><div class="label" id="syncpct">—</div></div>
+    <div class="meta" id="syncmeta"></div>
+  </div>
+
+  <div class="card">
+    <h2>Lightning (LND)</h2>
+    <div class="lnd" id="lnd">—</div>
+  </div>
+
+  <div class="card">
+    <h2>Serviços</h2>
+    <div class="grid" id="services"></div>
+  </div>
+
+  <div class="card" id="pending-card">
+    <h2>O que ainda falta</h2>
+    <ul class="pending" id="pending"></ul>
+  </div>
+</div>
+
+<script>
+async function tick() {
+  let d;
+  try { d = await (await fetch('/api/status')).json(); }
+  catch { document.getElementById('ts').textContent = 'sem resposta do monitor'; return; }
+
+  document.getElementById('ts').textContent = 'atualizado ' + new Date(d.ts).toLocaleTimeString('pt-BR');
+
+  const banner = document.getElementById('banner');
+  if (d.ready) { banner.className = 'banner ok'; banner.textContent = '✅ Tudo pronto e operacional'; }
+  else { banner.className = 'banner wait'; banner.textContent = '⏳ ' + d.pending.length + ' item(s) pendente(s) — veja abaixo'; }
+
+  // bitcoind
+  const b = d.bitcoind;
+  const pct = b.up ? (b.progress * 100) : 0;
+  document.getElementById('fill').style.width = pct.toFixed(2) + '%';
+  document.getElementById('syncpct').textContent = b.up ? (b.synced ? 'Sincronizado ✓' : pct.toFixed(2) + '%') : 'iniciando…';
+  document.getElementById('syncmeta').innerHTML = b.up
+    ? `Blocos <b>${b.blocks?.toLocaleString('pt-BR')}</b> / ${b.headers?.toLocaleString('pt-BR')} &nbsp;·&nbsp; Disco <b>${b.sizeGb||'?'} GB</b> &nbsp;·&nbsp; Pruned <b>${b.pruned?'sim':'não'}</b>`
+    : 'bitcoind ainda não respondeu (pode levar 1-2 min após subir)';
+
+  // lnd
+  const l = d.lnd;
+  document.getElementById('lnd').innerHTML = `Estado: <b>${l.label}</b>` + (l.state ? ` <span style="color:var(--muted)">(${l.state})</span>` : '');
+
+  // services
+  document.getElementById('services').innerHTML = d.services.map(s =>
+    `<div class="svc"><span class="dot ${s.up?'up':'down'}"></span><div><div class="name">${s.name}</div><div class="detail">${s.detail}</div></div></div>`
+  ).join('');
+
+  // pending
+  const pc = document.getElementById('pending-card');
+  if (d.pending.length === 0) { pc.style.display = 'none'; }
+  else { pc.style.display = ''; document.getElementById('pending').innerHTML = d.pending.map(p => `<li>${p}</li>`).join(''); }
+}
+tick();
+setInterval(tick, 5000);
+</script>
+</body>
+</html>

@@ -27,9 +27,9 @@ services:
     environment:
       BITCOIN_NETWORK: mainnet
       BITCOIN_EXTRA_ARGS: |-
-        prune=1000
+        prune=4000
         maxmempool=300
-        dbcache=512
+        dbcache=2048
         server=1
         txindex=0
         rpcbind=0.0.0.0
@@ -42,6 +42,7 @@ services:
       - bitcoind_data:/data
     ports:
       - "8333:8333"   # Bitcoin P2P
+      - "127.0.0.1:8332:8332"   # RPC (só loopback — p/ o monitor ler o progresso)
 
   # ── LND — Lightning Network Daemon ────────────────────────────
   lnd:
@@ -74,6 +75,7 @@ services:
       - lnd_data:/root/.lnd
     ports:
       - "9735:9735"   # Lightning P2P
+      - "127.0.0.1:8081:8080"   # REST (só loopback — p/ o monitor ler /v1/state)
     depends_on:
       - bitcoind
 

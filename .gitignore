@@ -38,3 +38,4 @@ apps/*/build/
 # OS
 .DS_Store
 *.swp
+bitfood-self-host.md
