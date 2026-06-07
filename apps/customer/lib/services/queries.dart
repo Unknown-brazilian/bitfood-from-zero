@@ -179,6 +179,14 @@ const String depositInvoiceBolt11Query = r'''
   }
 ''';
 
+const String requestWithdrawalMutation = r'''
+  mutation RequestWithdrawal($amountSats: Int!) {
+    requestWithdrawal(amountSats: $amountSats) {
+      balanceSats
+    }
+  }
+''';
+
 const String addAddressMutation = r'''
   mutation AddAddress(
     $label: String

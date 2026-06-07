@@ -44,7 +44,7 @@ class _LightningBodyState extends State<_LightningBody>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    _tabs = TabController(length: 3, vsync: this);
     if (widget.me?['lightningAddress'] != null) {
       _addrCtrl.text = widget.me!['lightningAddress'];
     }
@@ -150,9 +150,11 @@ class _LightningBodyState extends State<_LightningBody>
           labelColor: AppColors.orange,
           unselectedLabelColor: AppColors.textGrey,
           indicatorColor: AppColors.orange,
+          isScrollable: true,
           tabs: const [
             Tab(text: 'Minha Carteira'),
             Tab(text: 'Adicionar Fundos'),
+            Tab(text: 'Sacar'),
           ],
         ),
       ),
@@ -169,6 +171,12 @@ class _LightningBodyState extends State<_LightningBody>
             onSave: _saveAddress,
           ),
           _DepositTab(balanceSats: balanceSats, onDeposited: widget.refetch),
+          _WithdrawTab(
+            savedAddr: savedAddr,
+            balanceSats: balanceSats,
+            onWithdrawn: widget.refetch,
+            onSetAddress: () => _tabs.animateTo(0),
+          ),
         ],
       ),
     );
@@ -575,6 +583,220 @@ class _DepositTabState extends State<_DepositTab> {
               SizedBox(width: 8),
               Text('Aguardando confirmação...', style: TextStyle(fontSize: 12, color: AppColors.textGrey)),
             ]),
+        ],
+      ],
+    );
+  }
+}
+
+// ── Withdraw Tab ──────────────────────────────────────────────────────────────
+
+class _WithdrawTab extends StatefulWidget {
+  final String? savedAddr;
+  final int balanceSats;
+  final Refetch? onWithdrawn;
+  final VoidCallback onSetAddress;
+  const _WithdrawTab({
+    required this.savedAddr,
+    required this.balanceSats,
+    required this.onWithdrawn,
+    required this.onSetAddress,
+  });
+
+  @override
+  State<_WithdrawTab> createState() => _WithdrawTabState();
+}
+
+class _WithdrawTabState extends State<_WithdrawTab> {
+  final _amountCtrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _withdraw() async {
+    final sats = int.tryParse(_amountCtrl.text.trim());
+    if (sats == null || sats < 1) {
+      setState(() => _error = 'Digite um valor válido em sats (mínimo 1).');
+      return;
+    }
+    if (sats > widget.balanceSats) {
+      setState(() => _error = 'Saldo insuficiente.');
+      return;
+    }
+    setState(() { _loading = true; _error = null; });
+    try {
+      final client = GraphQLProvider.of(context).value;
+      final res = await client.mutate(MutationOptions(
+        document: gql(requestWithdrawalMutation),
+        variables: { 'amountSats': sats },
+      ));
+      if (res.hasException) throw res.exception!;
+      _amountCtrl.clear();
+      widget.onWithdrawn?.call();
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saque solicitado — o pagamento Lightning será processado em breve')),
+      );
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceAll(RegExp(r'OperationException.*?:\s?'), '');
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        // Balance card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.cardWhite,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Row(children: [
+            const Icon(Icons.account_balance_wallet_outlined, color: AppColors.orange, size: 28),
+            const SizedBox(width: 12),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Saldo disponível', style: TextStyle(fontSize: 12, color: AppColors.textGrey)),
+              Text('${widget.balanceSats} sats',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            ]),
+          ]),
+        ),
+        const SizedBox(height: 20),
+
+        if (widget.savedAddr == null) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8F0),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.orange.withOpacity(0.4)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                Icon(Icons.info_outline, color: AppColors.orange, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text('Defina seu endereço Lightning para sacar',
+                      style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 14)),
+                ),
+              ]),
+              const SizedBox(height: 8),
+              const Text(
+                'Os saques são enviados para o seu endereço Lightning. Defina-o na aba "Minha Carteira".',
+                style: TextStyle(fontSize: 12, color: AppColors.textGrey, height: 1.5),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: widget.onSetAddress,
+                  icon: const Icon(Icons.electric_bolt, color: Colors.white, size: 18),
+                  label: const Text('Definir endereço Lightning',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orange,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FFF4),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.success),
+            ),
+            child: Row(children: [
+              const Icon(Icons.north_east, color: AppColors.success, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Saque será enviado para',
+                      style: TextStyle(fontSize: 11, color: AppColors.textGrey, fontWeight: FontWeight.w600)),
+                  Text(widget.savedAddr!,
+                      style: const TextStyle(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 20),
+
+          const Text('Solicitar Saque',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+          const SizedBox(height: 6),
+          const Text(
+            'Informe quanto deseja sacar do seu saldo. O pagamento Lightning é processado após a solicitação.',
+            style: TextStyle(fontSize: 12, color: AppColors.textGrey, height: 1.5),
+          ),
+          const SizedBox(height: 14),
+
+          if (_error != null) ...[
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: const Color(0xFFFFF0F0), borderRadius: BorderRadius.circular(8)),
+              child: Text(_error!, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          TextField(
+            controller: _amountCtrl,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              hintText: 'Quantidade em sats (ex: 1000)',
+              prefixIcon: const Icon(Icons.electric_bolt, color: AppColors.orange),
+              suffixText: 'sats',
+              filled: true,
+              fillColor: AppColors.cardWhite,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.divider)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.divider)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: widget.balanceSats > 0
+                  ? () => _amountCtrl.text = '${widget.balanceSats}'
+                  : null,
+              child: const Text('Sacar tudo', style: TextStyle(color: AppColors.orange, fontWeight: FontWeight.w600)),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _loading ? null : _withdraw,
+              icon: _loading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.north_east, color: Colors.white),
+              label: Text(_loading ? 'Solicitando...' : 'Solicitar saque',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.orange,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
         ],
       ],
     );

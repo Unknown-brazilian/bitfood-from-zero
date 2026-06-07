@@ -81,7 +81,14 @@ const updateAvailabilityMutation = r'''
 
 const riderEarningsQuery = r'''
   query MyEarnings {
-    myEarnings { totalSats todaySats weekSats monthSats totalOrders }
+    myEarnings { totalSats todaySats weekSats monthSats totalOrders availableSats pendingSats }
+    me { lightningAddress lightningAddressLocked }
+  }
+''';
+
+const requestWithdrawalMutation = r'''
+  mutation RequestWithdrawal($amountSats: Int!) {
+    requestWithdrawal(amountSats: $amountSats) { balanceSats }
   }
 ''';
 

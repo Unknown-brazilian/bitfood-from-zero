@@ -127,7 +127,14 @@ const newOrderSub = r'''
 
 const myEarningsQuery = r'''
   query MyEarnings {
-    myEarnings { totalSats todaySats weekSats monthSats totalOrders }
+    myEarnings { totalSats todaySats weekSats monthSats totalOrders availableSats pendingSats }
+    myRestaurant { _id lightningAddress lightningAddressLocked }
+  }
+''';
+
+const requestWithdrawalMutation = r'''
+  mutation RequestWithdrawal($amountSats: Int!) {
+    requestWithdrawal(amountSats: $amountSats) { balanceSats }
   }
 ''';
 
