@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final r = result.data!['myRestaurant'];
           if (_isAvailable != (r['isAvailable'] == true)) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              setState(() => _isAvailable = r['isAvailable'] == true);
+              if (mounted) setState(() => _isAvailable = r['isAvailable'] == true);
             });
           }
         }
@@ -81,7 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (runMutation, mutResult) {
                     return GestureDetector(
                       onTap: () async {
-                        await runMutation({}).networkResult;
+                        final res = await runMutation({}).networkResult;
+                        final updated = res?.data?['toggleRestaurantAvailable']?['isAvailable'];
+                        if (updated is bool && mounted) {
+                          setState(() => _isAvailable = updated);
+                        }
                         refetch!();
                       },
                       child: AnimatedContainer(

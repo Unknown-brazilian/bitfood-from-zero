@@ -169,7 +169,17 @@ class _ActiveOrderCard extends StatelessWidget {
               ),
               builder: (runMutation, result) => TextButton(
                 onPressed: result?.isLoading == true ? null : () async {
-                  await runMutation({'orderId': order['_id']}).networkResult;
+                  final res = await runMutation({'orderId': order['_id']}).networkResult;
+                  if (!context.mounted) return;
+                  if (res?.hasException ?? false) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(status == 'ASSIGNED'
+                          ? 'Não foi possível confirmar a retirada.'
+                          : 'Não foi possível confirmar a entrega.'),
+                      backgroundColor: AppColors.primary,
+                    ));
+                    return;
+                  }
                   onUpdate();
                 },
                 style: TextButton.styleFrom(

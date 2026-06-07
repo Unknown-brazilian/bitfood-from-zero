@@ -208,7 +208,9 @@ class _FoodItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.read<CartModel>();
-    final price = food['priceSats'] as int? ?? (food['variations'] as List?)?.firstOrNull?['price'] as int? ?? 0;
+    final price = (food['priceSats'] as num?)?.toInt() ??
+        ((food['variations'] as List?)?.firstOrNull?['price'] as num?)?.toInt() ??
+        0;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 1),
@@ -257,22 +259,7 @@ class _FoodItem extends StatelessWidget {
                 Positioned(
                   bottom: -8, right: -4,
                   child: GestureDetector(
-                    onTap: () {
-                      cart.addItem(
-                        CartItem(foodId: food['_id'], title: food['title'], image: food['image'], quantity: 1, unitPrice: price),
-                        restaurantId,
-                        restaurantName,
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('${food['title']} adicionado'),
-                          backgroundColor: AppColors.success,
-                          duration: const Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                      );
-                    },
+                    onTap: () => _onAdd(context, cart),
                     child: Container(
                       width: 32, height: 32,
                       decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
@@ -284,6 +271,166 @@ class _FoodItem extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _onAdd(BuildContext context, CartModel cart) {
+    final variations = (food['variations'] as List?) ?? [];
+    final addons = (food['addons'] as List?) ?? [];
+    if (variations.isEmpty && addons.isEmpty) {
+      _addToCart(context, cart, null, const []);
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.cardWhite,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+        builder: (_) => _OptionsSheet(
+          food: food,
+          basePrice: (food['priceSats'] as num?)?.toInt() ?? 0,
+          onConfirm: (variation, selectedOptions) {
+            Navigator.pop(context);
+            _addToCart(context, cart, variation, selectedOptions);
+          },
+        ),
+      );
+    }
+  }
+
+  void _addToCart(BuildContext context, CartModel cart, Map<String, dynamic>? variation,
+      List<Map<String, dynamic>> selectedOptions) {
+    final basePrice = (food['priceSats'] as num?)?.toInt() ?? 0;
+    final varPrice = (variation?['price'] as num?)?.toInt() ?? basePrice;
+    final addonsTotal = selectedOptions.fold<int>(0, (s, o) => s + ((o['price'] as num?)?.toInt() ?? 0));
+    cart.addItem(
+      CartItem(
+        foodId: food['_id'],
+        title: food['title'] ?? '',
+        image: food['image'],
+        quantity: 1,
+        unitPrice: varPrice + addonsTotal,
+        variationId: variation?['_id'] as String?,
+        variationTitle: variation?['title'] as String?,
+        addons: selectedOptions,
+      ),
+      restaurantId,
+      restaurantName,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${food['title'] ?? ''} adicionado'),
+        backgroundColor: AppColors.success,
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+}
+
+class _OptionsSheet extends StatefulWidget {
+  final Map<String, dynamic> food;
+  final int basePrice;
+  final void Function(Map<String, dynamic>? variation, List<Map<String, dynamic>> options) onConfirm;
+
+  const _OptionsSheet({required this.food, required this.basePrice, required this.onConfirm});
+
+  @override
+  State<_OptionsSheet> createState() => _OptionsSheetState();
+}
+
+class _OptionsSheetState extends State<_OptionsSheet> {
+  Map<String, dynamic>? _variation;
+  final Set<String> _selectedOptionIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    final variations = (widget.food['variations'] as List?) ?? [];
+    if (variations.isNotEmpty) _variation = variations.first as Map<String, dynamic>;
+  }
+
+  List<Map<String, dynamic>> get _allOptions {
+    final addons = (widget.food['addons'] as List?) ?? [];
+    final result = <Map<String, dynamic>>[];
+    for (final a in addons) {
+      for (final o in ((a['options'] as List?) ?? [])) {
+        result.add(o as Map<String, dynamic>);
+      }
+    }
+    return result;
+  }
+
+  List<Map<String, dynamic>> get _selectedOptions =>
+      _allOptions.where((o) => _selectedOptionIds.contains(o['_id'])).toList();
+
+  @override
+  Widget build(BuildContext context) {
+    final variations = (widget.food['variations'] as List?) ?? [];
+    final addons = (widget.food['addons'] as List?) ?? [];
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.food['title'] ?? '',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            const SizedBox(height: 8),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  if (variations.isNotEmpty) ...[
+                    const Text('Variação', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textGrey)),
+                    ...variations.map((v) => RadioListTile<String>(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          value: v['_id'] as String,
+                          groupValue: _variation?['_id'] as String?,
+                          activeColor: AppColors.primary,
+                          onChanged: (_) => setState(() => _variation = v as Map<String, dynamic>),
+                          title: Text('${v['title'] ?? ''} · ${(v['price'] as num?)?.toInt() ?? 0} sats',
+                              style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                        )),
+                  ],
+                  if (addons.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    const Text('Adicionais', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textGrey)),
+                    for (final a in addons)
+                      ...((a['options'] as List?) ?? []).map((o) => CheckboxListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            value: _selectedOptionIds.contains(o['_id']),
+                            activeColor: AppColors.primary,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (sel) => setState(() {
+                              if (sel == true) {
+                                _selectedOptionIds.add(o['_id'] as String);
+                              } else {
+                                _selectedOptionIds.remove(o['_id']);
+                              }
+                            }),
+                            title: Text('${o['title'] ?? ''} · +${(o['price'] as num?)?.toInt() ?? 0} sats',
+                                style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                          )),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => widget.onConfirm(_variation, _selectedOptions),
+                child: const Text('Adicionar ao carrinho'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

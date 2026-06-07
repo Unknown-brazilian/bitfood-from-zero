@@ -52,36 +52,61 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onMeData(Map<String, dynamic> data) {
-    final zone = (data['me'] as Map?)?['zone'];
+    final me = data['me'] as Map?;
+    final zone = me?['zone'];
     final zoneId = zone?['_id']?.toString();
     if (zoneId != null && zoneId != _zoneId && mounted) {
       setState(() => _zoneId = zoneId);
+    }
+    final available = me?['available'] == true;
+    if (available && _locationTimer == null) {
+      _startLocationTracking(context);
+      if (mounted) setState(() => _available = true);
     }
   }
 
   void _startLocationTracking(BuildContext context) {
     _locationTimer?.cancel();
+    final client = GraphQLProvider.of(context).value;
     _locationTimer = Timer.periodic(const Duration(seconds: 15), (_) async {
       try {
         final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-        final client = GraphQLProvider.of(context).value;
         await client.mutate(MutationOptions(
           document: gql(updateLocationMutation),
           variables: {'lat': pos.latitude, 'lng': pos.longitude},
         ));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Rider location update failed: $e');
+      }
     });
   }
 
   void _stopLocationTracking() {
     _locationTimer?.cancel();
+    _locationTimer = null;
   }
 
   Future<void> _toggleAvailability(BuildContext context, bool current) async {
     try {
-      final permission = await Geolocator.checkPermission();
-      if (!current && permission == LocationPermission.denied) {
-        await Geolocator.requestPermission();
+      if (!current) {
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Ative o GPS/localização para ficar Online.'),
+              backgroundColor: AppColors.primary));
+          return;
+        }
+        var permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission == LocationPermission.deniedForever ||
+            permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Permissão de localização negada.'),
+              backgroundColor: AppColors.primary));
+          return;
+        }
       }
       final client = GraphQLProvider.of(context).value;
       await client.mutate(MutationOptions(

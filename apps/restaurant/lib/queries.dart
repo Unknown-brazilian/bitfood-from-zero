@@ -96,6 +96,7 @@ const newOrderSub = r'''
   subscription NewOrderForRestaurant($restaurantId: ID!) {
     newOrderForRestaurant(restaurantId: $restaurantId) {
       _id orderId total user { name phone }
+      items { title quantity }
     }
   }
 ''';

@@ -82,33 +82,12 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Query(
-                        options: QueryOptions(
-                          document: gql(validateCouponQuery),
-                          variables: {
-                            'code': _couponCtrl.text,
-                            'restaurantId': cart.restaurantId ?? '',
-                            'orderAmount': cart.totalSats,
-                          },
-                          fetchPolicy: FetchPolicy.noCache,
+                      ElevatedButton(
+                        onPressed: () => _applyCoupon(cart),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
-                        builder: (result, {fetchMore, refetch}) {
-                          return ElevatedButton(
-                            onPressed: () async {
-                              if (_couponCtrl.text.isEmpty) return;
-                              await refetch!();
-                              if (result.hasException) {
-                                setState(() { _couponError = 'Cupom inválido'; _coupon = null; });
-                              } else if (result.data?['validateCoupon'] != null) {
-                                setState(() { _coupon = result.data!['validateCoupon']; _couponError = null; });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            ),
-                            child: const Text('Aplicar'),
-                          );
-                        },
+                        child: const Text('Aplicar'),
                       ),
                     ],
                   ),
@@ -162,6 +141,25 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+  Future<void> _applyCoupon(CartModel cart) async {
+    if (_couponCtrl.text.trim().isEmpty) return;
+    final r = await GraphQLProvider.of(context).value.query(QueryOptions(
+      document: gql(validateCouponQuery),
+      variables: {
+        'code': _couponCtrl.text.trim(),
+        'restaurantId': cart.restaurantId ?? '',
+        'orderAmount': cart.totalSats,
+      },
+      fetchPolicy: FetchPolicy.noCache,
+    ));
+    if (!mounted) return;
+    if (r.hasException || r.data?['validateCoupon'] == null) {
+      setState(() { _couponError = 'Cupom inválido'; _coupon = null; });
+    } else {
+      setState(() { _coupon = r.data!['validateCoupon'] as Map<String, dynamic>; _couponError = null; });
+    }
+  }
+
   Future<void> _placeOrder(BuildContext context, CartModel cart) async {
     if (_addressCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Informe o endereço de entrega'), backgroundColor: AppColors.primary));
@@ -179,6 +177,8 @@ class _CartScreenState extends State<CartScreen> {
             'foodId': i.foodId,
             'quantity': i.quantity,
             if (i.variationId != null) 'variationId': i.variationId,
+            if (i.addons.isNotEmpty)
+              'addonOptionIds': i.addons.map((a) => a['_id']).whereType<String>().toList(),
           }).toList(),
           'deliveryAddress': { 'address': _addressCtrl.text.trim() },
           if (_instructionsCtrl.text.isNotEmpty) 'specialInstructions': _instructionsCtrl.text.trim(),
@@ -187,6 +187,7 @@ class _CartScreenState extends State<CartScreen> {
       ));
 
       if (result.hasException) throw result.exception!;
+      if (!mounted) return;
       final data = result.data!['placeOrder'];
       cart.clear();
 

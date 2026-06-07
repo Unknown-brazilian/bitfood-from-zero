@@ -136,7 +136,7 @@ class _LightningBodyState extends State<_LightningBody>
   @override
   Widget build(BuildContext context) {
     final savedAddr = widget.me?['lightningAddress'] as String?;
-    final balanceSats = (widget.me?['balanceSats'] ?? 0) as int;
+    final balanceSats = (widget.me?['balanceSats'] as num?)?.toInt() ?? 0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -421,7 +421,7 @@ class _DepositTabState extends State<_DepositTab> {
         document: gql(meQuery),
         fetchPolicy: FetchPolicy.networkOnly,
       ));
-      final newBalance = (res.data?['me']?['balanceSats'] ?? 0) as int;
+      final newBalance = (res.data?['me']?['balanceSats'] as num?)?.toInt() ?? 0;
       if (newBalance > widget.balanceSats) {
         _pollTimer?.cancel();
         _bolt11Timer?.cancel();

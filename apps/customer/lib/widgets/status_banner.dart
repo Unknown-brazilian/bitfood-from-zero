@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../services/graphql_service.dart';
 
 class StatusBanner extends StatefulWidget {
   const StatusBanner({super.key});
@@ -11,7 +12,7 @@ class StatusBanner extends StatefulWidget {
 }
 
 class _StatusBannerState extends State<StatusBanner> {
-  static const _url = 'https://api.bitfood.app/health';
+  static final _url = '${GraphQLService.baseUrl}/health';
   static const _interval = Duration(seconds: 30);
 
   Map<String, bool> _services = {'api': true, 'database': true, 'btcpay': true};

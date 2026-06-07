@@ -43,13 +43,24 @@ class NotificationService {
 
   static void showNewOrder(Map order) {
     final orderId = order['orderId'] ?? order['_id'] ?? '';
-    final items = (order['items'] as List?)?.map((i) => '${i['quantity']}x ${i['title']}').join(', ') ?? '';
-    final totalSats = order['total'] ?? 0;
+    final items = (order['items'] as List?)
+            ?.map((i) => '${i?['quantity'] ?? ''}x ${i?['title'] ?? ''}'.trim())
+            .where((s) => s.isNotEmpty)
+            .join(', ') ??
+        '';
+    final userName = order['user']?['name'] as String?;
+    final body = items.isNotEmpty
+        ? items
+        : (userName != null && userName.isNotEmpty ? userName : 'Toque para ver os detalhes');
+    final totalSats = (order['total'] as num?)?.toInt() ?? 0;
     show(
       id: orderId.hashCode,
-      title: 'Novo pedido! ⚡ $totalSats sats',
-      body: items.isNotEmpty ? items : 'Toque para ver os detalhes',
+      title: 'Novo pedido! ⚡ ${_formatSats(totalSats)} sats',
+      body: body,
       payload: order['_id']?.toString(),
     );
   }
+
+  static String _formatSats(int value) =>
+      value.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => '.');
 }

@@ -98,7 +98,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (_, i) {
                 final o = orders[i];
-                final status = o['orderStatus'] as String;
+                final status = o['orderStatus'] as String? ?? '';
                 final color = _statusColors[status] ?? AppColors.textGrey;
 
                 return GestureDetector(
@@ -130,7 +130,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          (o['items'] as List?)?.map((item) => '${item['quantity']}x ${item['title']}').join(', ') ?? '',
+                          (o['items'] as List?)?.map((item) => '${item['quantity'] ?? 0}x ${item['title'] ?? ''}').join(', ') ?? '',
                           style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
                           maxLines: 2, overflow: TextOverflow.ellipsis,
                         ),
@@ -139,7 +139,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           children: [
                             const Icon(Icons.electric_bolt, color: AppColors.orange, size: 13),
                             const SizedBox(width: 2),
-                            Text('${(o['total'] as int).toLocaleString()} sats', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                            Text('${((o['total'] as num?)?.toInt() ?? 0).toLocaleString()} sats', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                             const Spacer(),
                             Text(
                               _formatDate(o['createdAt']),
@@ -159,12 +159,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  String _formatDate(String? ts) {
+  String _formatDate(dynamic ts) {
     if (ts == null) return '';
-    try {
-      final d = DateTime.fromMillisecondsSinceEpoch(int.parse(ts));
-      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-    } catch (_) { return ''; }
+    final s = ts.toString();
+    DateTime? d = DateTime.tryParse(s);
+    if (d == null) {
+      final ms = int.tryParse(s);
+      if (ms != null) d = DateTime.fromMillisecondsSinceEpoch(ms);
+    }
+    if (d == null) return '';
+    d = d.toLocal();
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }
 

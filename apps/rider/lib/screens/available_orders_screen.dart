@@ -102,6 +102,17 @@ class _AvailableOrdersScreenState extends State<AvailableOrdersScreen> {
         final homeLng = (homeLocMap?['lng'] as num?)?.toDouble();
         final hasHome = me?['homeAddress'] != null;
 
+        // Reflect the 8h cooldown enforced by the backend.
+        DateTime? cooldownUntil;
+        final lastUsedRaw = me?['towardHomeLastUsed'];
+        if (lastUsedRaw != null) {
+          final lastUsed = DateTime.tryParse(lastUsedRaw.toString());
+          if (lastUsed != null) {
+            final until = lastUsed.add(const Duration(hours: 8));
+            if (until.isAfter(DateTime.now())) cooldownUntil = until;
+          }
+        }
+
         return Query(
           options: QueryOptions(
             document: gql(availableOrdersQuery),
@@ -125,6 +136,8 @@ class _AvailableOrdersScreenState extends State<AvailableOrdersScreen> {
                   active: _towardHomeActive,
                   activating: _activating,
                   hasHome: hasHome,
+                  cooldownUntil: cooldownUntil,
+                  inoperative: _towardHomeActive && homeLat == null,
                   error: _towardHomeError,
                   onActivate: () => _activate(me),
                   onDeactivate: _deactivate,
@@ -190,6 +203,8 @@ class _TowardHomeBar extends StatelessWidget {
   final bool active;
   final bool activating;
   final bool hasHome;
+  final DateTime? cooldownUntil;
+  final bool inoperative;
   final String? error;
   final VoidCallback onActivate;
   final VoidCallback onDeactivate;
@@ -198,10 +213,19 @@ class _TowardHomeBar extends StatelessWidget {
     required this.active,
     required this.activating,
     required this.hasHome,
+    required this.cooldownUntil,
+    required this.inoperative,
     required this.error,
     required this.onActivate,
     required this.onDeactivate,
   });
+
+  static String _formatCooldown(DateTime until) {
+    final remaining = until.difference(DateTime.now());
+    final h = remaining.inHours;
+    final m = remaining.inMinutes % 60;
+    return h > 0 ? '${h}h${m.toString().padLeft(2, '0')}' : '${m}min';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -233,9 +257,16 @@ class _TowardHomeBar extends StatelessWidget {
                   ]),
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
-                  child: Text('Filtro ativo',
-                      style: TextStyle(fontSize: 11, color: AppColors.textGrey)),
+                Expanded(
+                  child: Text(
+                      inoperative
+                          ? 'Filtro ativo, mas sem endereço de casa'
+                          : 'Filtro ativo',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: inoperative
+                              ? AppColors.primary
+                              : AppColors.textGrey)),
                 ),
                 IconButton(
                   onPressed: onDeactivate,
@@ -259,6 +290,12 @@ class _TowardHomeBar extends StatelessWidget {
                       height: 20,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: AppColors.primary))
+                else if (cooldownUntil != null)
+                  Text(
+                    'Disponível em ${_formatCooldown(cooldownUntil!)}',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textLight),
+                  )
                 else
                   TextButton.icon(
                     onPressed: onActivate,
@@ -422,9 +459,19 @@ class _AvailableOrderCard extends StatelessWidget {
                 onPressed: result?.isLoading == true
                     ? null
                     : () async {
-                        await runMutation(
+                        final res = await runMutation(
                                 {'orderId': order['_id']})
                             .networkResult;
+                        if (!context.mounted) return;
+                        if (res?.hasException ?? false) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Não foi possível aceitar a entrega.'),
+                                backgroundColor: AppColors.primary),
+                          );
+                          return;
+                        }
                         onAccepted();
                       },
                 style: TextButton.styleFrom(

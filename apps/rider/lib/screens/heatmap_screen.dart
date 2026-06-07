@@ -49,11 +49,17 @@ class _HeatMapScreenState extends State<HeatMapScreen> {
       ),
       builder: (result, {fetchMore, refetch}) {
         final rawPoints = (result.data?['orderHeatmap'] as List?) ?? [];
-        final List<_HeatPoint> points = rawPoints.map((p) => _HeatPoint(
-          lat: (p['lat'] as num).toDouble(),
-          lng: (p['lng'] as num).toDouble(),
-          weight: (p['weight'] as int? ?? 1),
-        )).toList();
+        final List<_HeatPoint> points = [];
+        for (final p in rawPoints) {
+          final lat = (p['lat'] as num?)?.toDouble();
+          final lng = (p['lng'] as num?)?.toDouble();
+          if (lat == null || lng == null) continue;
+          points.add(_HeatPoint(
+            lat: lat,
+            lng: lng,
+            weight: (p['weight'] as num?)?.round() ?? 1,
+          ));
+        }
 
         final maxWeight = points.isEmpty ? 1 : points.map((p) => p.weight).reduce(max);
 

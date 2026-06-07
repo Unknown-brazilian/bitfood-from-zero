@@ -120,10 +120,19 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text('Para onde vamos hoje?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
             ],
           ),
-          actions: const [
+          actions: [
             Padding(
-              padding: EdgeInsets.only(right: 12),
-              child: SatsChip(),
+              padding: const EdgeInsets.only(right: 12),
+              child: Query(
+                options: QueryOptions(
+                  document: gql(meQuery),
+                  fetchPolicy: FetchPolicy.cacheAndNetwork,
+                ),
+                builder: (result, {fetchMore, refetch}) {
+                  final balanceSats = (result.data?['me']?['balanceSats'] as num?)?.toInt() ?? 0;
+                  return SatsChip(sats: balanceSats);
+                },
+              ),
             ),
           ],
           bottom: PreferredSize(

@@ -94,12 +94,16 @@ class _LoginScreenState extends State<LoginScreen> {
           },
         ));
         if (result.hasException) throw result.exception!;
-        final data = result.data!['registerRestaurant'];
+        final data = result.data?['registerRestaurant'];
+        final token = data?['token'] as String?;
+        if (data == null || token == null) {
+          throw 'Não foi possível criar a conta. Verifique os dados e tente novamente.';
+        }
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
+        await prefs.setString('token', token);
         await prefs.setString('restaurant_id', data['restaurantId'] ?? '');
         await prefs.setString('restaurant_name', data['name'] ?? '');
-        widget.onLogin(data['token']);
+        widget.onLogin(token);
       } else {
         final result = await client.mutate(MutationOptions(
           document: gql(loginRestaurantMutation),
@@ -109,12 +113,16 @@ class _LoginScreenState extends State<LoginScreen> {
           },
         ));
         if (result.hasException) throw result.exception!;
-        final data = result.data!['loginRestaurant'];
+        final data = result.data?['loginRestaurant'];
+        final token = data?['token'] as String?;
+        if (data == null || token == null) {
+          throw 'E-mail/username ou senha inválidos.';
+        }
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
+        await prefs.setString('token', token);
         await prefs.setString('restaurant_id', data['restaurantId'] ?? '');
         await prefs.setString('restaurant_name', data['name'] ?? '');
-        widget.onLogin(data['token']);
+        widget.onLogin(token);
       }
     } catch (e) {
       setState(() => _error = e);

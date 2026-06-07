@@ -33,24 +33,35 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (_restaurantId != null && _restaurantId!.isNotEmpty)
-          Subscription(
-            options: SubscriptionOptions(
-              document: gql(newOrderSub),
-              variables: {'restaurantId': _restaurantId},
-            ),
-            builder: (result) {
-              if (!result.isLoading && result.data != null) {
-                final order = result.data!['newOrderForRestaurant'];
-                if (order != null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    NotificationService.showNewOrder(order);
-                  });
-                }
-              }
-              return const SizedBox.shrink();
-            },
+        Query(
+          options: QueryOptions(
+            document: gql(myRestaurantQuery),
+            fetchPolicy: FetchPolicy.cacheAndNetwork,
           ),
+          builder: (restResult, {fetchMore, refetch}) {
+            final prefsId = (_restaurantId != null && _restaurantId!.isNotEmpty) ? _restaurantId : null;
+            final fallbackId = restResult.data?['myRestaurant']?['_id'] as String?;
+            final restaurantId = prefsId ?? ((fallbackId != null && fallbackId.isNotEmpty) ? fallbackId : null);
+            if (restaurantId == null) return const SizedBox.shrink();
+            return Subscription(
+              options: SubscriptionOptions(
+                document: gql(newOrderSub),
+                variables: {'restaurantId': restaurantId},
+              ),
+              builder: (result) {
+                if (!result.isLoading && result.data != null) {
+                  final order = result.data!['newOrderForRestaurant'];
+                  if (order != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      NotificationService.showNewOrder(order);
+                    });
+                  }
+                }
+                return const SizedBox.shrink();
+              },
+            );
+          },
+        ),
         Container(
           color: AppColors.cardWhite,
           child: TabBar(
@@ -137,9 +148,9 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = order['orderStatus'] as String;
+    final status = order['orderStatus'] as String? ?? 'PAID';
     final items = (order['items'] as List?) ?? [];
-    final total = order['total'] as int? ?? 0;
+    final total = (order['total'] as num?)?.toInt() ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -199,7 +210,7 @@ class _OrderCard extends StatelessWidget {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
             ),
             child: Row(
-              children: _buildActions(context, status, order['_id']),
+              children: _buildActions(context, status, order['_id'] as String?),
             ),
           ),
         ],
@@ -207,7 +218,10 @@ class _OrderCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildActions(BuildContext context, String status, String orderId) {
+  List<Widget> _buildActions(BuildContext context, String status, String? orderId) {
+    if (orderId == null || orderId.isEmpty) {
+      return [Padding(padding: const EdgeInsets.all(12), child: Text('Pedido inválido', style: TextStyle(color: AppColors.textGrey, fontSize: 13)))];
+    }
     if (status == 'PAID') {
       return [
         _ActionBtn(label: 'Rejeitar', color: AppColors.textGrey, mutation: rejectOrderMutation, orderId: orderId, onDone: onAction),

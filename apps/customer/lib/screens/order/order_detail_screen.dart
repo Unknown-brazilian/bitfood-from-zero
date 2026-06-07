@@ -25,9 +25,11 @@ class OrderDetailScreen extends StatelessWidget {
           final o = result.data?['order'];
           if (o == null) return const Center(child: Text('Pedido não encontrado'));
 
-          final status = o['orderStatus'] as String;
+          final status = o['orderStatus'] as String?;
           final steps = ['PAID', 'ACCEPTED', 'PREPARING', 'READY', 'PICKED', 'DELIVERED'];
-          final currentStep = steps.indexOf(status).clamp(0, steps.length - 1);
+          final statusIndex = steps.indexOf(status ?? '');
+          final inFlow = statusIndex != -1;
+          final currentStep = statusIndex.clamp(0, steps.length - 1);
 
           return RefreshIndicator(
             onRefresh: () async => refetch!(),
@@ -40,8 +42,14 @@ class OrderDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Pedido #${o['orderId']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textDark)),
+                      Text('Pedido #${o['orderId'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textDark)),
                       const SizedBox(height: 16),
+                      if (!inFlow)
+                        Text(
+                          _outOfFlowLabel(status),
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textGrey),
+                        )
+                      else
                       ...List.generate(steps.length, (i) {
                         final done = i <= currentStep;
                         final active = i == currentStep;
@@ -132,10 +140,10 @@ class OrderDetailScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
-                            Text('${item['quantity']}x', style: const TextStyle(color: AppColors.textGrey, fontSize: 13)),
+                            Text('${item['quantity'] ?? 0}x', style: const TextStyle(color: AppColors.textGrey, fontSize: 13)),
                             const SizedBox(width: 8),
-                            Expanded(child: Text(item['title'], style: const TextStyle(fontSize: 13, color: AppColors.textDark))),
-                            Text('${(item['totalPrice'] as int).toLocaleString()} sats', style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+                            Expanded(child: Text(item['title'] ?? '', style: const TextStyle(fontSize: 13, color: AppColors.textDark))),
+                            Text('${((item['totalPrice'] as num?)?.toInt() ?? 0).toLocaleString()} sats', style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
                           ],
                         ),
                       )),
@@ -146,7 +154,7 @@ class OrderDetailScreen extends StatelessWidget {
                       if ((o['tip'] as int? ?? 0) > 0)
                         _Row('Gorjeta', '${(o['tip'] as int).toLocaleString()} sats'),
                       const Divider(height: 12),
-                      _Row('Total', '${(o['total'] as int).toLocaleString()} sats', bold: true),
+                      _Row('Total', '${((o['total'] as num?)?.toInt() ?? 0).toLocaleString()} sats', bold: true),
                     ],
                   ),
                 ),
@@ -156,6 +164,16 @@ class OrderDetailScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _outOfFlowLabel(String? s) {
+    const m = {
+      'PENDING': 'Aguardando pagamento ⚡',
+      'ASSIGNED': 'Entregador a caminho',
+      'CANCELLED': 'Pedido cancelado',
+      'REJECTED': 'Pedido rejeitado',
+    };
+    return m[s] ?? 'Status: ${s ?? '—'}';
   }
 
   String _stepLabel(String s) {

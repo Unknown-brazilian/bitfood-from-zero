@@ -116,9 +116,9 @@ class _LoginScreenState extends State<LoginScreen> {
         widget.onLogin(data['token']);
       }
     } catch (e) {
-      setState(() => _error = e);
+      if (mounted) setState(() => _error = e);
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 

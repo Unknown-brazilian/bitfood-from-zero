@@ -83,10 +83,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result.hasException) throw result.exception!;
       final data = _isRegister ? result.data!['register'] : result.data!['login'];
-      await AuthService.saveToken(data['token']);
+      final token = data?['token'] as String?;
+      if (token == null) throw Exception('Token não recebido do servidor');
+      await AuthService.saveToken(token);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_name', data['name']);
-      await prefs.setString('user_id', data['userId']);
+      await prefs.setString('user_name', (data['name'] as String?) ?? '');
+      await prefs.setString('user_id', (data['userId'] as String?) ?? '');
       widget.onLoginSuccess();
     } catch (e) {
       setState(() => _error = e);

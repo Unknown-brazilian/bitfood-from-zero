@@ -138,7 +138,15 @@ class _AddFoodSheetState extends State<_AddFoodSheet> {
         ));
         if (catResult.hasException) throw catResult.exception!;
         final cats = catResult.data?['addCategory']?['categories'] as List?;
-        categoryId = cats?.last?['_id'];
+        if (cats != null && cats.isNotEmpty) {
+          final match = cats.cast<Map?>().firstWhere(
+                (c) => c?['title'] == catTitle,
+                orElse: () => cats.last as Map?,
+              );
+          categoryId = match?['_id'] as String?;
+        } else {
+          categoryId = null;
+        }
       }
 
       if (categoryId == null) {
@@ -309,10 +317,18 @@ class _FoodTile extends StatelessWidget {
 
   Future<void> _toggle(BuildContext context, bool current) async {
     final client = GraphQLProvider.of(context).value;
-    await client.mutate(MutationOptions(
+    final result = await client.mutate(MutationOptions(
       document: gql(updateFoodMutation),
       variables: {'foodId': food['_id'], 'isActive': !current},
     ));
+    if (result.hasException) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao atualizar o item. Tente novamente.')),
+        );
+      }
+      return;
+    }
     refetch?.call();
   }
 

@@ -34,8 +34,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final d = widget.invoiceData;
     _lightning = d['lightningInvoice'] as String?;
     _checkoutUrl = d['checkoutUrl'] as String?;
-    _orderId = d['order']['_id'] as String;
-    _amountSats = d['amountSats'] as int;
+    _orderId = (d['order']?['_id'] as String?) ?? '';
+    _amountSats = (d['amountSats'] as num?)?.toInt() ?? 0;
     _qrCode = d['qrCode'] as String?;
     _hasBolt11 = _lightning != null && _lightning!.toLowerCase().startsWith('ln');
     _startPolling();
