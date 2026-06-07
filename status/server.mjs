@@ -92,7 +92,7 @@ async function collect() {
     NON_EXISTING: 'wallet não criada',
     LOCKED: 'wallet bloqueada (precisa unlock)',
     UNLOCKED: 'desbloqueada, iniciando…',
-    RPC_ACTIVE: 'aguardando criação da wallet',
+    RPC_ACTIVE: 'wallet ativa (sincronizando)',
     SERVER_ACTIVE: 'ativo',
     WAITING_TO_START: 'aguardando bitcoind',
   };
@@ -109,8 +109,66 @@ async function collect() {
 }
 
 const PAGE = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+const LND_PAGE = fs.readFileSync(new URL('./lnd.html', import.meta.url), 'utf8');
+
+// Proxy local p/ a REST do LND (TLS self-signed).
+function lndReq(method, path, body) {
+  return new Promise((resolve) => {
+    const data = body ? JSON.stringify(body) : null;
+    const req = https.request(
+      'https://127.0.0.1:8081' + path,
+      { method, rejectUnauthorized: false, timeout: 20000,
+        headers: data ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } : {} },
+      (res) => { let d = ''; res.on('data', (c) => (d += c)); res.on('end', () => resolve({ status: res.statusCode, body: d })); }
+    );
+    req.on('error', (e) => resolve({ status: 0, body: JSON.stringify({ error: e.message }) }));
+    req.on('timeout', () => { req.destroy(); resolve({ status: 0, body: '{"error":"timeout"}' }); });
+    if (data) req.write(data); req.end();
+  });
+}
+
+// As rotas /lnd só podem ser acessadas localmente — NUNCA pelo túnel.
+// (cloudflared encaminha o Host original; local usa localhost.)
+function isLocal(req) {
+  const h = (req.headers.host || '').toLowerCase();
+  return h.startsWith('localhost') || h.startsWith('127.0.0.1');
+}
+function readBody(req) {
+  return new Promise((r) => { let d = ''; req.on('data', (c) => (d += c)); req.on('end', () => r(d)); });
+}
 
 http.createServer(async (req, res) => {
+  // ── Setup do LND — LOCAL ONLY ───────────────────────────────────────
+  if (req.url.startsWith('/lnd')) {
+    if (!isLocal(req)) { res.writeHead(403); return res.end('forbidden — acesso só local'); }
+    if (req.url === '/lnd' || req.url === '/lnd/') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(LND_PAGE);
+    }
+    if (req.url === '/lnd/genseed') {
+      const r = await lndReq('GET', '/v1/genseed');
+      res.writeHead(r.status || 500, { 'Content-Type': 'application/json' });
+      return res.end(r.body);
+    }
+    if (req.url === '/lnd/init' && req.method === 'POST') {
+      let p;
+      try { p = JSON.parse(await readBody(req)); } catch { res.writeHead(400); return res.end('{"error":"json inválido"}'); }
+      // senha da wallet = a do auto-unlock (server-side); a SEED é o segredo do usuário
+      let pw;
+      try { pw = fs.readFileSync(new URL('../btcpay/walletpw.txt', import.meta.url), 'utf8').trim(); }
+      catch { res.writeHead(500); return res.end('{"error":"walletpw.txt ausente"}'); }
+      const payload = {
+        wallet_password: Buffer.from(pw, 'utf8').toString('base64'),
+        cipher_seed_mnemonic: p.mnemonic,
+        recovery_window: 0,
+      };
+      const r = await lndReq('POST', '/v1/initwallet', payload);
+      res.writeHead(r.status || 500, { 'Content-Type': 'application/json' });
+      return res.end(r.body);
+    }
+    res.writeHead(404); return res.end('not found');
+  }
+
   if (req.url.startsWith('/api/status')) {
     const data = await collect();
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });

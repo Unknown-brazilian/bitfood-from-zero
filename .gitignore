@@ -39,3 +39,8 @@ apps/*/build/
 .DS_Store
 *.swp
 bitfood-self-host.md
+btcpay/lnd.conf
+btcpay/walletpw.txt
+btcpay/thubConfig.yaml
+btcpay/RTL-Config.json
+ACESSOS.txt

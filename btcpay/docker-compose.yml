@@ -45,37 +45,19 @@ services:
       - "127.0.0.1:8332:8332"   # RPC (só loopback — p/ o monitor ler o progresso)
 
   # ── LND — Lightning Network Daemon ────────────────────────────
+  # LND oficial — NÃO cria wallet sozinho (init manual via GUI; seed sob seu controle)
   lnd:
-    image: btcpayserver/lnd:v0.18.5-beta
+    image: lightninglabs/lnd:v0.18.5-beta
     restart: unless-stopped
     logging: *log
-    environment:
-      LND_CHAIN: btc
-      LND_ENVIRONMENT: mainnet
-      LND_REST_LISTEN_HOST: https://localhost:8080
-      LND_EXTRA_ARGS: |-
-        bitcoin.node=bitcoind
-
-        [Bitcoind]
-        bitcoind.rpchost=bitcoind:8332
-        bitcoind.rpcuser=${BTC_RPC_USER}
-        bitcoind.rpcpass=${BTC_RPC_PASS}
-        bitcoind.zmqpubrawblock=tcp://bitcoind:28332
-        bitcoind.zmqpubrawtx=tcp://bitcoind:28333
-
-        [Application Options]
-        restlisten=0.0.0.0:8080
-        rpclisten=0.0.0.0:10009
-        tlsextradomain=lnd
-        alias=BitFood
-        color=#F7931A
-        accept-keysend=1
-        allow-circular-route=1
+    command: ["--configfile=/root/.lnd/lnd.conf"]
     volumes:
       - lnd_data:/root/.lnd
+      - ./lnd.conf:/root/.lnd/lnd.conf:ro
+      - ./walletpw.txt:/root/.lnd/walletpw.txt:ro
     ports:
       - "9735:9735"   # Lightning P2P
-      - "127.0.0.1:8081:8080"   # REST (só loopback — p/ o monitor ler /v1/state)
+      - "127.0.0.1:8081:8080"   # REST (só loopback — p/ o monitor)
     depends_on:
       - bitcoind
 
@@ -144,9 +126,42 @@ services:
       lnd:
         condition: service_started
 
+  # ── ThunderHub — GUI de gestão do nó (canais, rebalanceamento) ────
+  thunderhub:
+    image: apotdevin/thunderhub:0.18.4
+    restart: unless-stopped
+    logging: *log
+    environment:
+      ACCOUNT_CONFIG_PATH: /config/thubConfig.yaml
+    volumes:
+      - lnd_data:/lnd:ro
+      - ./thubConfig.yaml:/config/thubConfig.yaml:ro
+    ports:
+      - "127.0.0.1:3002:3000"
+    depends_on:
+      - lnd
+
+  # ── RTL (Ride The Lightning) — GUI de gestão + Circular Rebalance ──
+  rtl:
+    image: shahanafarooqui/rtl:v0.15.8
+    restart: unless-stopped
+    logging: *log
+    environment:
+      RTL_CONFIG_PATH: /RTL
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+    volumes:
+      - lnd_data:/lnd:ro
+      - ./RTL-Config.json:/RTL/RTL-Config.json
+      - rtl_db:/RTL/database
+    ports:
+      - "127.0.0.1:3003:3000"
+    depends_on:
+      - lnd
+
 volumes:
   bitcoind_data:
   lnd_data:
   postgres_data:
   nbxplorer_data:
   btcpay_data:
+  rtl_db:
