@@ -110,6 +110,7 @@ async function collect() {
 
 const PAGE = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const LND_PAGE = fs.readFileSync(new URL('./lnd.html', import.meta.url), 'utf8');
+const EMBED_PAGE = fs.readFileSync(new URL('./embed.html', import.meta.url), 'utf8');
 
 // Proxy local p/ a REST do LND (TLS self-signed).
 function lndReq(method, path, body) {
@@ -167,6 +168,12 @@ http.createServer(async (req, res) => {
       return res.end(r.body);
     }
     res.writeHead(404); return res.end('not found');
+  }
+
+  // versão compacta p/ embutir na landing (só sync + serviços)
+  if (req.url === '/embed' || req.url === '/embed/') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end(EMBED_PAGE);
   }
 
   if (req.url.startsWith('/api/status')) {

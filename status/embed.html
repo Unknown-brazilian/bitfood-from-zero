@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BitFood — Status (compacto)</title>
+<style>
+  :root { --border:#2c2c2c; --txt:#eaeaea; --muted:#8a8a8a; --green:#50A773; --red:#EA1D2C; --orange:#FF6900; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,Segoe UI,Roboto,sans-serif; background:transparent; color:var(--txt); padding:12px; }
+  .wrap { max-width:780px; margin:0 auto; }
+  h4 { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:7px; }
+  .bar { height:24px; background:#191919; border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
+  .fill { height:100%; background:linear-gradient(90deg,var(--orange),var(--green)); transition:width .6s; }
+  .lbl { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+  .meta { color:var(--muted); font-size:11px; margin-top:5px; text-align:center; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(125px,1fr)); gap:8px; margin-top:14px; }
+  .svc { display:flex; align-items:center; gap:8px; background:#191919; border:1px solid var(--border); border-radius:8px; padding:9px 11px; font-size:13px; }
+  .dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .dot.up { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .dot.down { background:var(--red); }
+  .ts { text-align:center; color:var(--muted); font-size:10px; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h4>Sincronização do nó Bitcoin</h4>
+  <div class="bar"><div class="fill" id="fill" style="width:0%"></div><div class="lbl" id="pct">—</div></div>
+  <div class="meta" id="meta"></div>
+  <div class="grid" id="services"></div>
+  <div class="ts" id="ts"></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+async function tick() {
+  let d;
+  try { d = await (await fetch('/api/status')).json(); } catch { $('ts').textContent = 'sem resposta'; return; }
+  const b = d.bitcoind || {};
+  const pct = b.up ? (b.progress * 100) : 0;
+  $('fill').style.width = pct.toFixed(2) + '%';
+  $('pct').textContent = b.up ? (b.synced ? 'Sincronizado ✓' : pct.toFixed(2) + '%') : 'iniciando…';
+  $('meta').innerHTML = b.up
+    ? `Blocos ${b.blocks?.toLocaleString('pt-BR')} / ${b.headers?.toLocaleString('pt-BR')} · ${b.sizeGb || '?'} GB`
+    : '';
+  $('services').innerHTML = (d.services || [])
+    .map((s) => `<div class="svc"><span class="dot ${s.up ? 'up' : 'down'}"></span>${s.name.replace(/\s*\(.*\)/, '')}</div>`)
+    .join('');
+  $('ts').textContent = 'atualizado ' + new Date(d.ts).toLocaleTimeString('pt-BR');
+}
+tick();
+setInterval(tick, 5000);
+</script>
+</body>
+</html>
