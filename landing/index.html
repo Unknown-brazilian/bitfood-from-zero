@@ -583,6 +583,15 @@
       <span class="dl-btn"   id="t-dl-btn-2"></span>
     </a>
 
+    <a class="dl-card"
+       href="https://github.com/Unknown-brazilian/anotai/releases/download/v1.0.0/anotai-v1.0.0.apk"
+       download>
+      <span class="dl-icon">🦺</span>
+      <span class="dl-label" id="t-dl-label-3"></span>
+      <span class="dl-name"  id="t-dl-name-3"></span>
+      <span class="dl-btn"   id="t-dl-btn-3"></span>
+    </a>
+
   </div>
 
   <!-- Release notes -->
@@ -1094,8 +1103,8 @@ const T = {
     alphaLabel:    '⚠️ Fase Alpha:',
     alphaBody:     ' este app está em desenvolvimento ativo. Funcionalidades podem mudar, bugs são esperados e dados podem ser resetados sem aviso. Use apenas para testes.',
     msgs:          ['1º App de delivery somente Bitcoin', 'Preferimos Wallet of Satoshi ⚡', 'Trabalhe onde quiser,<br>sem fronteiras'],
-    dlLabel:       ['App do', 'App do', 'App do'],
-    dlName:        ['Cliente', 'Restaurante', 'Entregador'],
+    dlLabel:       ['App do', 'App do', 'App do', 'AnotAí'],
+    dlName:        ['Cliente', 'Restaurante', 'Entregador', 'Diárias'],
     dlBtn:         '⬇ Baixar APK',
     releaseSummary:'📋 Notas da versão v1.4.4 ▾',
     statusTitle:   'Status dos serviços',
@@ -1156,8 +1165,8 @@ const T = {
     alphaLabel:    '⚠️ Alpha Phase:',
     alphaBody:     ' this app is in active development. Features may change, bugs are expected and data may be reset without notice. Use for testing only.',
     msgs:          ['1st Bitcoin Only food delivery app', 'We prefer Wallet of Satoshi ⚡', 'Work everywhere you want,<br>with no borders'],
-    dlLabel:       ['Customer', 'Restaurant', 'Rider'],
-    dlName:        ['App', 'App', 'App'],
+    dlLabel:       ['Customer', 'Restaurant', 'Rider', 'AnotAí'],
+    dlName:        ['App', 'App', 'App', 'Daily Pay'],
     dlBtn:         '⬇ Download APK',
     releaseSummary:'📋 Release notes v1.4.4 ▾',
     statusTitle:   'Service status',
@@ -1218,8 +1227,8 @@ const T = {
     alphaLabel:    '⚠️ Fase Alpha:',
     alphaBody:     ' esta app está en desarrollo activo. Las funcionalidades pueden cambiar, se esperan errores y los datos pueden reiniciarse sin previo aviso. Úsala solo para pruebas.',
     msgs:          ['Primera app de delivery solo Bitcoin', 'Preferimos Wallet of Satoshi ⚡', 'Trabaja donde quieras,<br>sin fronteras'],
-    dlLabel:       ['App del', 'App del', 'App del'],
-    dlName:        ['Cliente', 'Restaurante', 'Repartidor'],
+    dlLabel:       ['App del', 'App del', 'App del', 'AnotAí'],
+    dlName:        ['Cliente', 'Restaurante', 'Repartidor', 'Jornales'],
     dlBtn:         '⬇ Descargar APK',
     releaseSummary:'📋 Notas de versión v1.4.4 ▾',
     statusTitle:   'Estado de los servicios',
@@ -1280,8 +1289,8 @@ const T = {
     alphaLabel:    '⚠️ Phase Alpha :',
     alphaBody:     " cette app est en développement actif. Les fonctionnalités peuvent changer, des bugs sont attendus et les données peuvent être réinitialisées sans préavis. À utiliser uniquement pour les tests.",
     msgs:          ["1ère app de livraison uniquement Bitcoin", 'Nous préférons Wallet of Satoshi ⚡', 'Travaillez où vous voulez,<br>sans frontières'],
-    dlLabel:       ['App', 'App', 'App'],
-    dlName:        ['Client', 'Restaurant', 'Livreur'],
+    dlLabel:       ['App', 'App', 'App', 'AnotAí'],
+    dlName:        ['Client', 'Restaurant', 'Livreur', 'Journées'],
     dlBtn:         '⬇ Télécharger APK',
     releaseSummary:"📋 Notes de version v1.4.4 ▾",
     statusTitle:   'État des services',
@@ -1342,8 +1351,8 @@ const T = {
     alphaLabel:    '⚠️ Alpha Mba\'e:',
     alphaBody:     " ko mba'eporurã oĩ mba'apopy rehe. Mba'eporu ikatu ombosakã, ojehu vai ha mba'e ojejapoha ikatu ojeguejy oñemomarandu'ỹre. Eiporu porubyrã haguã añoite.",
     msgs:          ["Peteĩ mba'eporurã Bitcoin rehegua", 'Roñe\'ẽ Wallet of Satoshi ndive ⚡', 'Robajéta reikóva rehe,<br>tape\'ỹre'],
-    dlLabel:       ["Tembiporu'a", "Tenda Rembi'u", 'Moheñói'],
-    dlName:        ['Rehegua', 'Rehegua', 'Rehegua'],
+    dlLabel:       ["Tembiporu'a", "Tenda Rembi'u", 'Moheñói', 'AnotAí'],
+    dlName:        ['Rehegua', 'Rehegua', 'Rehegua', 'Diárias'],
     dlBtn:         "⬇ Emono'ã APK",
     releaseSummary:"📋 Mba'eporu pyahu v1.4.4 ▾",
     statusTitle:   "Mba'apohára oĩporãha",
@@ -1418,7 +1427,7 @@ function applyLang(lang) {
   }
 
   // Download cards
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     document.getElementById('t-dl-label-' + i).textContent = t.dlLabel[i] || '';
     document.getElementById('t-dl-name-'  + i).textContent = t.dlName[i]  || '';
     document.getElementById('t-dl-btn-'   + i).textContent = t.dlBtn;
