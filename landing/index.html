@@ -1042,9 +1042,8 @@
       <div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--card-br);font-size:0.82rem;color:var(--orange);font-weight:600;" id="t-oa-satscalc-cta"></div>
     </a>
 
-    <!-- Borderless Miner card -->
-    <a href="https://github.com/Unknown-brazilian/borderless-miner/releases/download/v1.0.0/borderless-miner-v1.0.0-armeabi-v7a.apk"
-       style="flex:1 1 300px; max-width:380px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; text-decoration:none; color:var(--white); text-align:left; display:flex; flex-direction:column; gap:12px; transition:border-color .2s, transform .2s;"
+    <!-- Borderless Miner card (dois ABIs: arm64 principal, armeabi-v7a alternativo) -->
+    <div style="flex:1 1 300px; max-width:380px; background:var(--card-bg); border:1px solid var(--card-br); border-radius:20px; padding:28px 24px; color:var(--white); text-align:left; display:flex; flex-direction:column; gap:12px; transition:border-color .2s, transform .2s;"
        onmouseover="this.style.borderColor='var(--orange)';this.style.transform='translateY(-4px)'"
        onmouseout="this.style.borderColor='var(--card-br)';this.style.transform='translateY(0)'">
       <div style="display:flex; align-items:center; gap:14px;">
@@ -1060,8 +1059,15 @@
         <span style="background:rgba(247,147,26,0.12);border:1px solid rgba(247,147,26,0.3);border-radius:20px;padding:3px 10px;font-size:0.72rem;color:var(--orange);">⛏️ <span id="t-oa-tag-mining"></span></span>
         <span style="background:rgba(247,147,26,0.12);border:1px solid rgba(247,147,26,0.3);border-radius:20px;padding:3px 10px;font-size:0.72rem;color:var(--orange);">🎟️ <span id="t-oa-tag-lottery"></span></span>
       </div>
-      <div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--card-br);font-size:0.82rem;color:var(--orange);font-weight:600;" id="t-oa-bm-cta"></div>
-    </a>
+      <div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--card-br);display:flex;flex-direction:column;gap:6px;">
+        <a href="https://github.com/Unknown-brazilian/borderless-miner/releases/download/v1.0.0/borderless-miner-v1.0.0-arm64-v8a.apk"
+           style="font-size:0.82rem;color:var(--orange);font-weight:600;text-decoration:none;"
+           onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" id="t-oa-bm-cta"></a>
+        <a href="https://github.com/Unknown-brazilian/borderless-miner/releases/download/v1.0.0/borderless-miner-v1.0.0-armeabi-v7a.apk"
+           style="font-size:0.75rem;color:var(--muted);text-decoration:none;"
+           onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" id="t-oa-bm-alt"></a>
+      </div>
+    </div>
 
   </div>
 
@@ -1140,7 +1146,8 @@ const T = {
     oaBmDesc:       'Minerador solo de Bitcoin (modo loteria) para celulares Android antigos. Núcleo SHA-256d em C via FFI, multicore, aponta para a public-pool.io. Reaproveita e-waste — educativo e simbólico.',
     oaTagMining:    'Mineração',
     oaTagLottery:   'Loteria',
-    oaBmCta:        '⬇ Baixar APK →',
+    oaBmCta:        '⬇ Baixar APK (arm64) →',
+    oaBmAlt:        'Celular antigo? Versão 32-bit (armeabi-v7a) →',
   },
   en: {
     htmlLang:      'en',
@@ -1201,7 +1208,8 @@ const T = {
     oaBmDesc:       'Solo Bitcoin miner (lottery mode) for old Android phones. SHA-256d core in C via FFI, multicore, points to public-pool.io. Repurposes e-waste — educational and symbolic.',
     oaTagMining:    'Mining',
     oaTagLottery:   'Lottery',
-    oaBmCta:        '⬇ Download APK →',
+    oaBmCta:        '⬇ Download APK (arm64) →',
+    oaBmAlt:        'Older phone? 32-bit build (armeabi-v7a) →',
   },
   es: {
     htmlLang:      'es',
@@ -1262,7 +1270,8 @@ const T = {
     oaBmDesc:       'Minero solo de Bitcoin (modo lotería) para celulares Android antiguos. Núcleo SHA-256d en C vía FFI, multicore, apunta a public-pool.io. Reutiliza e-waste — educativo y simbólico.',
     oaTagMining:    'Minería',
     oaTagLottery:   'Lotería',
-    oaBmCta:        '⬇ Descargar APK →',
+    oaBmCta:        '⬇ Descargar APK (arm64) →',
+    oaBmAlt:        '¿Celular antiguo? Versión 32-bit (armeabi-v7a) →',
   },
   fr: {
     htmlLang:      'fr',
@@ -1323,7 +1332,8 @@ const T = {
     oaBmDesc:       'Mineur Bitcoin solo (mode loterie) pour vieux téléphones Android. Cœur SHA-256d en C via FFI, multicœur, pointe vers public-pool.io. Réemploi de e-waste — éducatif et symbolique.',
     oaTagMining:    'Minage',
     oaTagLottery:   'Loterie',
-    oaBmCta:        '⬇ Télécharger APK →',
+    oaBmCta:        '⬇ Télécharger APK (arm64) →',
+    oaBmAlt:        'Vieux téléphone ? Version 32-bit (armeabi-v7a) →',
   },
   gn: {
     htmlLang:      'gn',
@@ -1384,7 +1394,8 @@ const T = {
     oaBmDesc:       "Bitcoin apopyhára solo (lotería) Android pyahu'ỹvape. Núcleo SHA-256d C-pe FFI rupive, multicore, public-pool.io-pe ohóva. Embojevy e-waste — temimbo'e ha techaukaha.",
     oaTagMining:    'Apopy',
     oaTagLottery:   'Lotería',
-    oaBmCta:        "⬇ Emono'ã APK →",
+    oaBmCta:        "⬇ Emono'ã APK (arm64) →",
+    oaBmAlt:        "Celular tujáva? Versión 32-bit (armeabi-v7a) →",
   },
 };
 
@@ -1489,6 +1500,7 @@ function applyLang(lang) {
   document.getElementById('t-oa-tag-mining').textContent    = t.oaTagMining;
   document.getElementById('t-oa-tag-lottery').textContent   = t.oaTagLottery;
   document.getElementById('t-oa-bm-cta').textContent        = t.oaBmCta;
+  document.getElementById('t-oa-bm-alt').textContent        = t.oaBmAlt;
 
   // Footer
   document.getElementById('t-footer-built').textContent    = t.footerBuilt;
