@@ -587,9 +587,9 @@
        href="https://github.com/Unknown-brazilian/AnotaAi/releases/download/v1.0.0/anotai-v1.0.0.apk"
        download>
       <span class="dl-icon">🦺</span>
-      <span class="dl-label" id="t-dl-label-3"></span>
-      <span class="dl-name"  id="t-dl-name-3"></span>
-      <span class="dl-btn"   id="t-dl-btn-3"></span>
+      <span class="dl-label">AnotAí</span>
+      <span class="dl-name">Diárias</span>
+      <span class="dl-btn">⬇ Baixar APK</span>
     </a>
 
   </div>
@@ -1426,8 +1426,9 @@ function applyLang(lang) {
     if (el) el.innerHTML = t.msgs[i] || '';
   }
 
-  // Download cards
-  for (let i = 0; i < 4; i++) {
+  // Download cards (os 3 do BitFood são preenchidos por tradução;
+  // o card do AnotAí é estático no HTML, então fica fora do loop)
+  for (let i = 0; i < 3; i++) {
     document.getElementById('t-dl-label-' + i).textContent = t.dlLabel[i] || '';
     document.getElementById('t-dl-name-'  + i).textContent = t.dlName[i]  || '';
     document.getElementById('t-dl-btn-'   + i).textContent = t.dlBtn;
