@@ -38,6 +38,7 @@ services:
         rpcpassword=${BTC_RPC_PASS}
         zmqpubrawblock=tcp://0.0.0.0:28332
         zmqpubrawtx=tcp://0.0.0.0:28333
+        deprecatedrpc=startingheight
     volumes:
       - bitcoind_data:/data
     ports:
@@ -91,6 +92,9 @@ services:
       NBXPLORER_BTCNODEENDPOINT: bitcoind:8333
       NBXPLORER_POSTGRES: "User ID=postgres;Host=postgres;Port=5432;Database=nbxplorer"
       NBXPLORER_DBTRIE: 0
+      # Sem cookie auth: NBXplorer não publica portas (só rede interna do Docker),
+      # e BTCPay não compartilha o volume do cookie. Acesso restrito à rede Docker.
+      NBXPLORER_NOAUTH: 1
     volumes:
       - nbxplorer_data:/datadir
     depends_on:
@@ -109,7 +113,7 @@ services:
       BTCPAY_ROOTPATH: /
       BTCPAY_BIND: 0.0.0.0:3000
       BTCPAY_POSTGRES: "User ID=postgres;Host=postgres;Port=5432;Database=btcpayserver"
-      BTCPAY_NBXPLORERURL: http://nbxplorer:32838/
+      BTCPAY_BTCEXPLORERURL: http://nbxplorer:32838/
       BTCPAY_EXTERNALURL: https://btcpay.bitfood.app
       # Conexão com LND via REST — lê macaroon direto do volume compartilhado
       BTCPAY_BTCLIGHTNING: "type=lnd-rest;server=https://lnd:8080;macaroonfilepath=/lnd/data/chain/bitcoin/mainnet/admin.macaroon;allowinsecure=true"

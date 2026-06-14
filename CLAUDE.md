@@ -20,11 +20,21 @@ admin/              Painel admin Next.js (gitignored)
 ```
 
 ## Infra em produção (servidor remoto)
-- Backend PM2: `bitfood-backend` (porta 4000) — `pm2 restart bitfood-backend --update-env`
+- Backend: container Docker `bitfood-backend-1` (porta `127.0.0.1:4000`). **Não é PM2.**
+  Deploy de mudanças (compose raiz, serviço `backend`): `docker compose build backend && docker compose up -d backend`.
 - Landing PM2: `bitfood-landing`
-- BTCPay: https://btcpay.bitfood.app (Lightning only, LND interno)
+- BTCPay stack (`btcpay/docker-compose.yml`): bitcoind + lnd + nbxplorer + postgres + btcpay
+  (+ RTL/ThunderHub). Acesso: https://btcpay.bitfood.app (Lightning only, LND interno).
 - LND image: `btcpayserver/lnd:v0.18.5-beta` (v0.18.3 incompatível com Bitcoin Core 31.0)
-- Backend env: `backend/.env` — contém BTCPAY_URL, BTCPAY_API_KEY, BTCPAY_STORE_ID, BTCPAY_WEBHOOK_SECRET
+- **NBXplorer × Bitcoin Core 31.0**: o Core 31 removeu `startingheight` do `getpeerinfo`;
+  o NBXplorer 2.5.4 (NBitcoin) quebra com `ArgumentNullException` em loop (indexer não sobe).
+  Fix aplicado: `deprecatedrpc=startingheight` nos args do bitcoind (bridge — o campo sai de
+  vez no próximo Core, então atualizar NBXplorer/BTCPay depois).
+- **Config BTCPay→NBXplorer**: a chave correta é `BTCPAY_BTCEXPLORERURL` (não
+  `BTCPAY_NBXPLORERURL`, que o BTCPay ignora → cai no default `127.0.0.1:24444` → "node offline").
+  NBXplorer roda com `NBXPLORER_NOAUTH=1` (não publica porta; só rede interna do Docker).
+- Backend env: `backend/.env` — BTCPAY_URL/API_KEY/STORE_ID/WEBHOOK_SECRET (hoje **vazias**;
+  podem ser preenchidas pelo painel admin em `/status` via acesso local, ou direto no `.env`).
 
 ## Versão atual: v1.4.1 (lançada em 2026-04-29)
 GitHub Release: https://github.com/Unknown-brazilian/bitfood-from-zero/releases/tag/v1.4.1
